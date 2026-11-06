@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payment successful · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-role="student" data-page="fees">
+  <main class="container">
+    <div class="result">
+      <div class="tick">&#10003;</div>
+      <h1>Payment failed</h1>
+      <p class="muted">Your payment didn't go through and you haven't been charged. Your fee is still unpaid.</p>
+
+      <div class="card" id="details">Loading...</div>
+
+      <div class="actions">
+        <button class="btn" id="retry" type="button">Try again</button>
+        <a class="btn outline" href="/student/fees.html">Back to my fees</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    // Opened as /student/payment-failed.html?session=<session id>
+    (async () => {
+      const session = new URLSearchParams(location.search).get('session');
+      try {
+        const a = await api.get('/student/payment-attempts/' + encodeURIComponent(session));
+        document.getElementById('details').innerHTML = `
+          <div class="kv"><span>Fee</span><span>${esc(a.fee)}</span></div>
+          <div class="kv"><span>Amount</span><span>${esc(formatMoney(a.amount))}</span></div>
+          <div class="kv"><span>Reason</span><span>${esc(a.failure_reason || 'Payment declined')}</span></div>
+          <div class="kv"><span>Status</span><span>${statusBadge('unpaid')}</span></div>`;
+
+        // Try again starts a NEW attempt for the same fee (the old session is already used up)
+        document.getElementById('retry').addEventListener('click', async () => {
+          try {
+            const r = await api.post('/student/pay', { fee_id: a.fee_id });
+            location.href = r.checkoutUrl;
+          } catch (err) {
+            showError('#details', err);
+          }
+        });
+      } catch (err) {
+        showError('#details', err);
+      }
+    })();
+  </script>
+</body>
+</html>
