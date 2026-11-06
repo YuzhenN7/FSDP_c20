@@ -9,11 +9,19 @@
 <body data-role="student" data-page="payment-history">
   <main class="container">
     <div class="page-head">
-      <h1>Payment history</h1>
-      <p class="muted">Everything you have paid, newest first.</p>
+      <div>
+        <h1>Payment history</h1>
+       <p class="muted">Everything you've paid, and what is still due. Failed attempts are listed but not counted as paid.</p>
+      </div>
+      <div class="card" style="padding:12px 20px">
+        <div class="muted" style="font-size:14px">Outstanding balance</div>
+        <div id="outstanding" style="font-size:24px;font-weight:700">-</div>
+      </div>
     </div>
+    
 
     <section class="card" id="list">Loading...</section>
+    <p><a href="/student/fees.html">Back to my fees</a></p>
   </main>
 
   <script src="/js/api.js"></script>
@@ -23,12 +31,20 @@
     (async () => {
       try {
         const payments = await api.get('/student/payments');
+
+        const due = payments
+        .filter((p) => p.status === 'pending')
+        .reduce((sum, p) => sum + Number(p.amount), 0);
+        document.getElementById('outstanding').textContent = formatMoney(due);
+
         renderTable('#list', [
           { label: 'Date', render: (p) => esc(formatDate(p.paid_at)) },
           { label: 'Fee', key: 'fee' },
-          { label: 'Amount', render: (p) => esc(formatMoney(p.amount)) },
           { label: 'Method', key: 'method' },
-          { label: 'Reference', key: 'reference' },
+          { label: 'Status', render: (p) => statusBadge(p.status) },
+          { label: 'Amount', render: (p) =>
+            `<span style="${p.status === 'failed' ? 'color:#4A5568' : ''}">${esc(formatMoney(p.amount))}</span>` },
+          //{ label: 'Reference', key: 'reference' },
           { label: '', render: (p) => `<a href="/student/payment-success.html?id=${esc(p.id)}">View receipt</a>` },
         ], payments);
       } catch (err) {
