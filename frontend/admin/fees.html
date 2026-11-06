@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fees · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-role="admin" data-page="fees">
+  <main class="container">
+    <div class="page-head">
+      <h1>Fees</h1>
+      <p class="muted">Fees assigned to students, and whether they are paid.</p>
+    </div>
+
+    <section class="card" id="list">Loading...</section>
+
+    <div class="todo">
+      <strong>To build here:</strong> assign a fee to a student (or a whole centre), edit or remove an unpaid fee.
+      API: <code>feeRoutes.js</code>, <code>feeController.js</code> and <code>feeModel.js</code> in <code>backend/</code>.
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    (async () => {
+      try {
+        const fees = await api.get('/fees');
+        renderTable('#list', [
+          { label: 'Student', key: 'student' },
+          { label: 'Fee', key: 'description' },
+          { label: 'Amount', render: (f) => esc(formatMoney(f.amount)) },
+          { label: 'Due', render: (f) => esc(formatDate(f.due_date)) },
+          { label: 'Status', render: (f) => statusBadge(f.status) },
+        ], fees);
+      } catch (err) {
+        showError('#list', err);
+      }
+    })();
+  </script>
+</body>
+</html>

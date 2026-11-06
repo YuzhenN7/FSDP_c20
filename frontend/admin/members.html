@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Members · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-role="admin" data-page="members">
+  <main class="container">
+    <div class="page-head">
+      <h1>Members</h1>
+      <p class="muted">All members (students) across every centre.</p>
+    </div>
+
+    <section class="card" id="list">Loading...</section>
+
+    <div class="todo">
+      <strong>To build here:</strong> search/filter by centre, edit a student (e.g. change their centre).
+      API: <code>memberRoutes.js</code>, <code>memberController.js</code> and <code>memberModel.js</code> in <code>backend/</code>.
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    (async () => {
+      try {
+        const students = await api.get('/members');
+        renderTable('#list', [
+          { label: 'Name', key: 'name' },
+          { label: 'Email', key: 'email' },
+          { label: 'Centre', key: 'centre' },
+          { label: 'Belt', key: 'belt' },
+          { label: 'Joined', render: (s) => esc(formatDate(s.joined_on)) },
+        ], students);
+      } catch (err) {
+        showError('#list', err);
+      }
+    })();
+  </script>
+</body>
+</html>

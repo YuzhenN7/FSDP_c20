@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log in · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="brand-big">Aikido Shinjukai</div>
+    <form class="card" id="login-form">
+      <h2>Log in</h2>
+
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="email" required>
+
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+
+      <p class="error" id="error"></p>
+      <button class="btn" type="submit">Log in</button>
+      <p class="switch">New student? <a href="/register.html">Create an account</a></p>
+    </form>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script>
+    // Already logged in? Go straight to your home page.
+    const existing = api.getUser();
+    if (api.getToken() && existing) location.replace(api.homePageFor(existing.role));
+
+    document.getElementById('login-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const errorBox = document.getElementById('error');
+      errorBox.textContent = '';
+      try {
+        const result = await api.post('/auth/login', {
+          email: document.getElementById('email').value,
+          password: document.getElementById('password').value,
+        });
+        api.saveSession(result.token, result.user);
+        location.href = api.homePageFor(result.user.role);
+      } catch (err) {
+        errorBox.textContent = err.message;
+      }
+    });
+  </script>
+</body>
+</html>

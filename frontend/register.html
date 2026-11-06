@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Register · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="auth-wrap">
+    <div class="brand-big">Aikido Shinjukai</div>
+    <form class="card" id="register-form">
+      <h2>Create a student account</h2>
+
+      <label for="name">Full name</label>
+      <input id="name" type="text" autocomplete="name" required>
+
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="email" required>
+
+      <label for="password">Password (at least 8 characters)</label>
+      <input id="password" type="password" autocomplete="new-password" minlength="8" required>
+
+      <label for="confirm">Confirm password</label>
+      <input id="confirm" type="password" autocomplete="new-password" required>
+
+      <p class="error" id="error"></p>
+      <button class="btn" type="submit">Create account</button>
+      <p class="switch">Already have an account? <a href="/login.html">Log in</a></p>
+    </form>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script>
+    document.getElementById('register-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const errorBox = document.getElementById('error');
+      errorBox.textContent = '';
+
+      const password = document.getElementById('password').value;
+      if (password !== document.getElementById('confirm').value) {
+        errorBox.textContent = 'The two passwords do not match.';
+        return;
+      }
+
+      try {
+        const result = await api.post('/auth/register', {
+          name: document.getElementById('name').value,
+          email: document.getElementById('email').value,
+          password,
+        });
+        api.saveSession(result.token, result.user);
+        location.href = api.homePageFor(result.user.role);
+      } catch (err) {
+        errorBox.textContent = err.message;
+      }
+    });
+  </script>
+</body>
+</html>

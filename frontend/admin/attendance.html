@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Attendance · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-role="admin" data-page="attendance">
+  <main class="container">
+    <div class="page-head">
+      <h1>Attendance</h1>
+      <p class="muted">Who attended which class, newest first.</p>
+    </div>
+
+    <section class="card" id="list">Loading...</section>
+
+    <div class="todo">
+      <strong>To build here:</strong> mark a student present or absent for a class on a date, and filter by class or centre.
+      API: <code>attendanceRoutes.js</code>, <code>attendanceController.js</code> and <code>attendanceModel.js</code> in <code>backend/</code>.
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    (async () => {
+      try {
+        const records = await api.get('/attendance');
+        renderTable('#list', [
+          { label: 'Date', render: (a) => esc(formatDate(a.class_date)) },
+          { label: 'Centre', key: 'centre' },
+          { label: 'Class', key: 'class' },
+          { label: 'Member', key: 'student' },
+          { label: 'Status', render: (a) => `<span class="badge ${a.status === 'present' ? 'pass' : 'fail'}">${esc(a.status)}</span>` },
+        ], records);
+      } catch (err) {
+        showError('#list', err);
+      }
+    })();
+  </script>
+</body>
+</html>

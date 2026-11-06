@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fees · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-role="student" data-page="fees">
+  <main class="container">
+    <div class="page-head">
+      <h1>My fees</h1>
+      <p class="muted">Pay what is due. A receipt is emailed to you.</p>
+    </div>
+
+    <section class="card" id="list">Loading...</section>
+    <p class="error" id="pay-error"></p>
+
+    <div class="todo">
+      <strong>To build here (online payments):</strong> make the Pay button work. Today it calls
+      <code>POST /api/student/fees/:id/pay</code>, which is a placeholder in <code>studentPortalController.js</code> (and <code>studentPortalModel.js</code>) in <code>backend/</code>.
+      After a successful payment, go to <code>/student/payment-success.html?id=PAYMENT_ID</code>.
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    async function payFee(feeId) {
+      const errorBox = document.getElementById('pay-error');
+      errorBox.textContent = '';
+      try {
+        const payment = await api.post(`/student/fees/${feeId}/pay`);
+        location.href = '/student/payment-success.html?id=' + payment.id;
+      } catch (err) {
+        errorBox.textContent = err.message;
+      }
+    }
+
+    (async () => {
+      try {
+        const fees = await api.get('/student/fees');
+        renderTable('#list', [
+          { label: 'Fee', key: 'description' },
+          { label: 'Amount', render: (f) => esc(formatMoney(f.amount)) },
+          { label: 'Due', render: (f) => esc(formatDate(f.due_date)) },
+          { label: 'Status', render: (f) => statusBadge(f.status) },
+          {
+            label: '',
+            render: (f) => (f.status === 'unpaid'
+              ? `<button class="btn small" data-pay="${esc(f.id)}">Pay now</button>`
+              : ''),
+          },
+        ], fees);
+        document.querySelectorAll('[data-pay]').forEach((btn) => {
+          btn.addEventListener('click', () => payFee(btn.dataset.pay));
+        });
+      } catch (err) {
+        showError('#list', err);
+      }
+    })();
+  </script>
+</body>
+</html>

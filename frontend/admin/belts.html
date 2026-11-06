@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Belts · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-role="admin" data-page="belts">
+  <main class="container">
+    <div class="page-head">
+      <h1>Belt levels</h1>
+      <p class="muted">The belt ladder, lowest first. (The sample ladder is an assumption until the client confirms theirs.)</p>
+    </div>
+
+    <section class="card" id="list">Loading...</section>
+
+    <div class="todo">
+      <strong>To build here:</strong> add, rename, reorder and remove belt levels. API: <code>beltRoutes.js</code>, <code>beltController.js</code> and <code>beltModel.js</code> in <code>backend/</code>.
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    (async () => {
+      try {
+        const belts = await api.get('/belts');
+        renderTable('#list', [
+          { label: 'Order', key: 'sort_order' },
+          { label: 'Belt', key: 'name' },
+        ], belts);
+      } catch (err) {
+        showError('#list', err);
+      }
+    })();
+  </script>
+</body>
+</html>

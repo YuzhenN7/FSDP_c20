@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payment history · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-role="student" data-page="payment-history">
+  <main class="container">
+    <div class="page-head">
+      <h1>Payment history</h1>
+      <p class="muted">Everything you have paid, newest first.</p>
+    </div>
+
+    <section class="card" id="list">Loading...</section>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    (async () => {
+      try {
+        const payments = await api.get('/student/payments');
+        renderTable('#list', [
+          { label: 'Date', render: (p) => esc(formatDate(p.paid_at)) },
+          { label: 'Fee', key: 'fee' },
+          { label: 'Amount', render: (p) => esc(formatMoney(p.amount)) },
+          { label: 'Method', key: 'method' },
+          { label: 'Reference', key: 'reference' },
+          { label: '', render: (p) => `<a href="/student/payment-success.html?id=${esc(p.id)}">View receipt</a>` },
+        ], payments);
+      } catch (err) {
+        showError('#list', err);
+      }
+    })();
+  </script>
+</body>
+</html>

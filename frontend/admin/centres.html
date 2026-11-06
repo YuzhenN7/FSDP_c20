@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Centres · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-role="admin" data-page="centres">
+  <main class="container">
+    <div class="page-head">
+      <h1>Centres</h1>
+      <p class="muted">Every training centre, in one place.</p>
+    </div>
+
+    <section class="card" id="list">Loading...</section>
+
+    <div class="todo">
+      <strong>To build here:</strong> add, edit and remove a centre. API: <code>centreRoutes.js</code>, <code>centreController.js</code> and <code>centreModel.js</code> in <code>backend/</code>.
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    (async () => {
+      try {
+        const centres = await api.get('/centres');
+        renderTable('#list', [
+          { label: 'Centre', key: 'name' },
+          { label: 'Address', key: 'address' },
+        ], centres);
+      } catch (err) {
+        showError('#list', err);
+      }
+    })();
+  </script>
+</body>
+</html>
