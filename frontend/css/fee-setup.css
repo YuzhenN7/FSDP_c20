@@ -84,12 +84,12 @@
     flex-basis: 100%; 
     display: flex; 
     justify-content: space-between; 
-    align-items: flex-start; 
+    align-items: center; 
     gap: 12px; 
-    padding: 24px 32px 16px; 
+    padding: 20px 32px 16px; 
 }
 .modal-head h2 { 
-    margin-bottom: 2px; 
+    margin: 0; 
 }
 .modal-close { 
     background: none; 
@@ -109,7 +109,7 @@
 .modal-preview {
     flex: 2 1 280px; 
     padding: 20px 28px;
-    background: #f6f8fb; 
+    background: #e1e8f4; 
     border-top: 1px solid var(--border); 
     border-left: 1px solid var(--border);
     display: flex; 
@@ -132,7 +132,7 @@
     font-size: 12px; 
     font-weight: 700; 
     letter-spacing: 0.06em; 
-    color: var(--muted);
+    color: var(--navy);
     border-bottom: 1px solid var(--border);
 }
 
@@ -164,6 +164,73 @@
     font-size: 24px; 
 }
 
+/* ---------- Yes/No and Active/Inactive toggle buttons ---------- */
+/* each button is a real radio input (hidden) + a styled label, so it works with the keyboard too*/
+.seg {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+.seg-opt {
+    position: relative;
+    margin: 0;
+    font-weight: 400;
+}
+.seg-opt input {
+    position: absolute;
+    opacity: 0;
+    width: auto;
+    pointer-events: none;
+}
+.seg-opt span {
+    display: inline-block;
+    min-width: 56px;
+    padding: 8px 16px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--card);
+    cursor: pointer;
+}
+.seg-opt input:checked + span {
+    background: var(--pill);
+    border-color: var(--navy);
+    color: var(--navy);
+}
+.seg-opt input:focus-visible + span {
+    outline: 2px solid var(--navy);
+    outline-offset: 2px;
+}
+.seg-opt input:disabled + span {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+.note {
+    margin: 6px 0 0;
+    font-size: 12px;
+}
+ 
+/* ---------- Price preview ---------- */
+.preview-title {
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: var(--navy);
+}
+ 
+.kv.total {
+    border-top: 1px solid var(--border);
+    margin-top: 6px;
+    padding-top: 12px;
+    font-size: 16px;
+}
+.kv.total span:last-child {
+    color: var(--navy);
+    font-size: 24px;
+}
+
+
 /* ---------- Fee checklist inside Create Package ---------- */
 .picks { 
     border: 1px solid var(--border); 
@@ -182,15 +249,54 @@
     border-bottom: 1px solid var(--border);
 }
 
-.fee-pick:last-child { 
-    border-bottom: none; 
+.fee-pick:last-child {
+    border-bottom: none;
 }
-.fee-pick input { 
-    width: auto; 
+.fee-pick input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--navy);
 }
-.fee-pick span:nth-child(2) { 
-    flex: 1; 
+.fee-pick span:nth-child(2) {
+    flex: 1;
 }
-.fee-pick.off { 
-    color: var(--muted); 
+.fee-pick span:last-child {
+    font-weight: 700;
+}
+.fee-pick:has(input:checked) {
+    background: #c9d8ef;
+}
+.fee-pick.off {
+    color: var(--muted);
+}
+.fee-pick.off span:last-child {
+    font-weight: 400;
+    font-size: 12px;
+}
+
+/* ---------- Grading fee by belt grade (two columns of small price boxes) ---------- */
+.belt-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 12px;
+}
+.belt-row label {
+    margin-top: 10px;
+    font-size: 13px;
+}
+@media (max-width: 600px) {
+    .belt-grid {
+        grid-template-columns: 1fr;
+    }
+}
+ 
+/* ---------- Small screens: stack the two fields and the two panels ---------- */
+@media (max-width: 600px) {
+    .row-2 {
+        grid-template-columns: 1fr;
+    }
+    .modal-form, .modal-actions, .modal-head {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
 }

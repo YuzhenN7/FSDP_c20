@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="/css/fee-setup.css">
 </head>
 <body>
-
+ 
 <header class="topbar">
   <a class="brand" href="#">Aikido Shinjukai</a>
   <nav>
@@ -17,13 +17,13 @@
   </nav>
   <div class="userchip"><span class="avatar">J</span>John Tan</div>
 </header>
-
+ 
 <main class="container wide">
   <div class="page-head">
     <h1>Fees</h1>
     <div class="muted">Set up fee types and packages. Final amounts are worked out for you.</div>
   </div>
-
+ 
   <section class="card">
     <div class="card-head">
       <div><h2>Fee Management</h2><div class="muted">Manage all available fee types</div></div>
@@ -37,7 +37,7 @@
     </div>
     <p class="footnote">*9% GST is an illustrative example, not a verified Shinju-Kai setting.</p>
   </section>
-
+ 
   <section class="card">
     <div class="card-head">
       <div><h2>Package Management</h2><div class="muted">Combine different fee types into a package</div></div>
@@ -51,40 +51,77 @@
     </div>
   </section>
 </main>
-
-<!-- ADD / EDIT FEE POP-UP -->
+ 
+<!-- ============ ADD / EDIT FEE POP-UP ============ -->
+<!-- hidden until the admin clicks "Add Fee" or a row's "Edit" -->
 <div class="backdrop" id="feeModal" hidden>
-  <form class="modal" id="feeForm">
+  <form class="modal" id="feeForm" role="dialog" aria-modal="true" aria-labelledby="feeTitle">
     <div class="modal-head">
-      <div><h2 id="feeTitle">Add New Fee</h2><div class="muted">Enter the details of the fee you want to create.</div></div>
+      <h2 id="feeTitle">Add New Fee</h2>
       <button class="modal-close" type="button" data-close aria-label="Close">&times;</button>
     </div>
+ 
+    <!-- left side: the form -->
     <div class="modal-form">
-      <div class="modal-section">FEE DETAILS</div>
+      <div class="modal-section">1. FEE DETAILS</div>
       <label for="f-name">Fee name *</label>
       <input id="f-name" required>
-      <label for="f-category">Fee type *</label>
-      <select id="f-category"><option>Registration</option><option>Membership</option><option>Pass</option><option>Grading</option><option>Late fee</option><option>Other</option></select>
-
-      <div class="modal-section">PRICING</div>
-      <label for="f-amount">Fee amount, before GST (leave empty if it varies, e.g. grading by belt)</label>
-      <input id="f-amount" type="number" step="0.01" min="0">
-      <label for="f-gst">GST applicable?</label>
-      <select id="f-gst"><option value="1">Yes</option><option value="0">No</option></select>
-      <label for="f-discount">Discount (%)</label>
-      <input id="f-discount" type="number" step="0.01" min="0" max="100" value="0">
-      <label for="f-pkg">Can be included in a package?</label>
-      <select id="f-pkg"><option value="1">Yes</option><option value="0">No</option></select>
-
-      <div class="modal-section">ADDITIONAL INFORMATION</div>
+      <div class="row-2">
+        <div class="field">
+          <label for="f-category">Fee type *</label>
+          <select id="f-category">
+            <option>Registration</option><option>Membership</option><option>Class Package</option>
+            <option>Pass</option><option>Grading</option><option>Late fee</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-group">Applicable student group *</label>
+          <select id="f-group">
+            <option value="Adult">Adult (13 years and above)</option>
+            <option value="Children">Children (12 years and below)</option>
+            <option value="All">All</option>
+          </select>
+        </div>
+      </div>
+ 
+      <div class="modal-section">2. PRICING</div>
+      <div id="f-flat">
+        <label for="f-amount">Fee amount (before GST)</label>
+        <input id="f-amount" type="number" step="0.01" min="0">
+        <p class="muted note">Leave empty if the amount varies.</p>
+      </div>
+      <!-- shown instead of the single amount when Fee type = Grading (prices come from the Grading SOP fee list) -->
+      <div id="f-belts" hidden>
+        <label id="f-belts-label">Grading fee by belt grade (before GST)</label>
+        <div class="belt-grid" id="f-belt-grid"></div>
+        <p class="muted note">Based on the Grading SOP (Sep 2025). Edit a price here if HQ changes it.</p>
+      </div>
+      <label for="f-discount">Discount (optional)</label>
+      <select id="f-discount">
+        <option value="0">None</option><option value="5">5%</option><option value="10">10%</option>
+        <option value="15">15%</option><option value="20">20%</option>
+      </select>
+      <label id="f-pkg-label">Can it be included in a package? *</label>
+      <div class="seg" role="radiogroup" aria-labelledby="f-pkg-label">
+        <label class="seg-opt"><input type="radio" name="f-pkg" value="1" checked><span>Yes</span></label>
+        <label class="seg-opt"><input type="radio" name="f-pkg" value="0"><span>No</span></label>
+      </div>
+      <p class="muted note">*Choose No for fees charged on their own, such as grading and late submission fees.</p>
+ 
+      <div class="modal-section">3. ADDITIONAL INFORMATION</div>
       <label for="f-desc">Description</label>
       <textarea id="f-desc" rows="2"></textarea>
-      <label for="f-status">Fee status</label>
-      <select id="f-status"><option value="active">Active</option><option value="inactive">Inactive</option></select>
+      <label id="f-status-label">Fee status</label>
+      <div class="seg" role="radiogroup" aria-labelledby="f-status-label">
+        <label class="seg-opt"><input type="radio" name="f-status" value="active" checked><span>Active</span></label>
+        <label class="seg-opt"><input type="radio" name="f-status" value="inactive"><span>Inactive</span></label>
+      </div>
       <p class="error" id="feeError"></p>
     </div>
+ 
+    <!-- right side: price review (filled in by feePreview()) -->
     <div class="modal-preview">
-      <strong class="preview-title">PRICE PREVIEW</strong>
+      <strong class="preview-title">PRICE REVIEW</strong>
       <div class="kv"><span>Fee amount</span><span id="fv-base">-</span></div>
       <div class="kv"><span>Discount</span><span id="fv-disc">-</span></div>
       <div class="kv"><span>GST (9%*)</span><span id="fv-gst">-</span></div>
@@ -92,74 +129,126 @@
       <div class="muted">Worked out automatically. The final amount can't be edited.</div>
       <div class="modal-warn">Changes apply to new assignments only.</div>
     </div>
+ 
     <div class="modal-actions">
       <button class="btn outline" type="button" data-close>Cancel</button>
-      <button class="btn" type="submit">Save fee</button>
+      <button class="btn" type="submit">Save Fee</button>
     </div>
   </form>
 </div>
-
-<!-- CREATE PACKAGE POP-UP -->
+ 
+<!-- ============ CREATE PACKAGE POP-UP ============ -->
 <div class="backdrop" id="pkgModal" hidden>
-  <form class="modal" id="pkgForm">
+  <form class="modal" id="pkgForm" role="dialog" aria-modal="true" aria-labelledby="pkgTitle">
     <div class="modal-head">
-      <div><h2>Create New Package</h2><div class="muted">Set up a package by selecting fees and defining its details.</div></div>
+      <h2 id="pkgTitle">Create Package</h2>
       <button class="modal-close" type="button" data-close aria-label="Close">&times;</button>
     </div>
+ 
     <div class="modal-form">
       <div class="modal-section">1. PACKAGE DETAILS</div>
       <label for="p-name">Package name *</label>
       <input id="p-name" required>
       <label for="p-group">Applicable student group *</label>
-      <select id="p-group"><option>Adult</option><option>Children</option><option>All</option></select>
+      <select id="p-group">
+        <option value="Adult">Adult (13 years and above)</option>
+        <option value="Children">Children (12 years and below)</option>
+        <option value="All">All</option>
+      </select>
       <label for="p-desc">Package description</label>
       <textarea id="p-desc" rows="2"></textarea>
-
-      <div class="modal-section">2. SELECT FEES TO INCLUDE</div>
-      <p class="muted">Grading and late submission fees are charged separately and can't be added.</p>
+ 
+      <div class="modal-section">2. PRICING</div>
+      <!-- the tick-list is built from the fees table by openPackage() -->
       <div class="picks" id="p-fees"></div>
-
+ 
       <div class="modal-section">3. PACKAGE PRICING</div>
-      <label for="p-discount">Package discount (%)</label>
-      <input id="p-discount" type="number" step="0.01" min="0" max="100" value="0">
-
+      <label for="p-discount">Package discount (optional)</label>
+      <select id="p-discount">
+        <option value="0">None</option><option value="5">5%</option><option value="10">10%</option>
+        <option value="15">15%</option><option value="20">20%</option>
+      </select>
+ 
       <div class="modal-section">4. PACKAGE AVAILABILITY</div>
-      <label for="p-valid">Package validity</label>
-      <input id="p-valid" placeholder="e.g. 6 months">
-      <label for="p-status">Package status</label>
-      <select id="p-status"><option value="active">Active</option><option value="inactive">Inactive</option></select>
+      <div class="row-2">
+        <div class="field">
+          <label for="p-valid">Package validity</label>
+          <select id="p-valid">
+            <option>1 month</option><option>3 months</option><option selected>6 months</option><option>12 months</option>
+          </select>
+        </div>
+        <div class="field">
+          <label id="p-status-label">Package status</label>
+          <div class="seg" role="radiogroup" aria-labelledby="p-status-label">
+            <label class="seg-opt"><input type="radio" name="p-status" value="active" checked><span>Active</span></label>
+            <label class="seg-opt"><input type="radio" name="p-status" value="inactive"><span>Inactive</span></label>
+          </div>
+        </div>
+      </div>
       <p class="error" id="pkgError"></p>
     </div>
+ 
     <div class="modal-preview">
-      <strong class="preview-title">PRICE PREVIEW</strong>
+      <strong class="preview-title">PRICE REVIEW</strong>
       <div id="pp-lines"></div>
       <div class="kv"><span>Subtotal</span><span id="pv-sub">-</span></div>
       <div class="kv"><span>Discount</span><span id="pv-disc">-</span></div>
       <div class="kv"><span>GST (9%*)</span><span id="pv-gst">-</span></div>
-      <div class="kv total"><span>Final price</span><span id="pv-final">-</span></div>
+      <div class="kv total"><span>Final package price</span><span id="pv-final">-</span></div>
       <div class="modal-warn">Prices are saved when a package is assigned to a student. Later fee changes don't change what they owe.</div>
     </div>
+ 
     <div class="modal-actions">
       <button class="btn outline" type="button" data-close>Cancel</button>
-      <button class="btn" type="submit">Create package</button>
+      <button class="btn" type="submit">Create Package</button>
     </div>
   </form>
 </div>
-
+ 
 <script>
   const GST_RATE = 9;                                  // example rate only
   const money = (n) => '$' + Number(n).toFixed(2);
   const r2 = (n) => Math.round(n * 100) / 100;
   const $ = (id) => document.getElementById(id);
-
+  // makes sure text typed by the admin is shown as text, never run as HTML
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  // helpers for the Yes/No and Active/Inactive toggle buttons (they are radio inputs)
+  const getRadio = (name) => document.querySelector(`input[name="${name}"]:checked`).value;
+  const setRadio = (name, value) => { document.querySelector(`input[name="${name}"][value="${value}"]`).checked = true; };
+  const SEPARATE = ['Grading', 'Late fee'];            // fee types that are always charged on their own
+ 
+  // Grading fee list from the Grading SOP (Sep 2025). Kyu 12 to 7 are children only; the other grades cost the same for adults and children.
+  const BELTS = [
+    { key:'k12_7', label:'Kyu 12 to 7 (children)',    price:45 },
+    { key:'k6',    label:'Kyu 6 (Blue)',              price:50 },
+    { key:'k5',    label:'Kyu 5 (Blue Gold)',         price:55 },
+    { key:'k4',    label:'Kyu 4 (Brown)',             price:60 },
+    { key:'k3',    label:'Kyu 3 (Brown Gold)',        price:65 },
+    { key:'k2',    label:'Kyu 2 (Black)',             price:90 },
+    { key:'k1',    label:'Kyu 1 (Black Gold)',        price:95 },
+    { key:'jdan',  label:'Junior Dan (below 14 yrs)', price:215 },
+    { key:'sho',   label:'Shodan (15 yrs and above)', price:535 },
+    { key:'ni',    label:'Nidan',                     price:590 },
+    { key:'san',   label:'Sandan',                    price:695 },
+    { key:'yon',   label:'Yondan',                    price:910 },
+  ];
+  // builds the list of belt price boxes (uses the SOP prices unless this fee already has its own)
+  function renderBelts(prices) {
+    $('f-belt-grid').innerHTML = BELTS.map((b) => `<div class="belt-row"><label for="belt-${b.key}">${b.label}</label>
+      <input id="belt-${b.key}" type="number" step="0.01" min="0" value="${prices && prices[b.key] != null ? prices[b.key] : b.price}"></div>`).join('');
+  }
+  const beltPrices = () => [...document.querySelectorAll('#f-belt-grid input')].map((i) => Number(i.value));
+  // price after discount % and GST
+  const finalOf = (base, discPct) => { const d = r2(base * discPct / 100); return r2(base - d + r2((base - d) * GST_RATE / 100)); };
+ 
   // ---- sample data (replaced by the real API later) ----
   let nextId = 20;
   let fees = [
-    { id:1, name:'Registration fee',    category:'Registration', base:60,   gst:false, discount:0, inPackages:true,  status:'active' },
-    { id:2, name:'Membership',          category:'Membership',   base:48,   gst:false, discount:0, inPackages:true,  status:'active' },
-    { id:3, name:'Trial Class',         category:'Pass',         base:29,   gst:false, discount:0, inPackages:true,  status:'active' },
-    { id:4, name:'Grading Fee',         category:'Grading',      base:null, gst:false, discount:0, inPackages:false, status:'active' },
-    { id:5, name:'Late Submission Fee', category:'Late fee',     base:22,   gst:false, discount:0, inPackages:false, status:'active' },
+    { id:1, name:'Registration Fee',      category:'Registration',  group:'All',   base:60,   gst:true, discount:0, desc:'',                                           inPackages:true,  status:'active' },
+    { id:2, name:'Annual Membership Fee', category:'Membership',    group:'Adult', base:48,   gst:true, discount:0, desc:'',                                           inPackages:true,  status:'active' },
+    { id:3, name:'10-Lesson Pass',        category:'Class Package', group:'Adult', base:270,  gst:true, discount:0, desc:'Ten adult training lessons, valid for 6 months', inPackages:true,  status:'active' },
+    { id:4, name:'Grading Fee',           category:'Grading',       group:'All',   base:null, gst:true, discount:0, desc:'',                                           inPackages:false, status:'active' },
+    { id:5, name:'Late Submission Fee',   category:'Late fee',      group:'All',   base:22,   gst:true, discount:0, desc:'',                                           inPackages:false, status:'active' },
   ];
   let packages = [
     { name:'10-Lesson Package', group:'Adult',    price:'$270.00' },
@@ -170,13 +259,13 @@
     { name:'50-Lesson Package', group:'Children', price:'$1,200.00' },
   ];
   let editingId = null;
-
-  // ---- render (displaying fee and package data on webpage) ---- 
-  function render() { 
+ 
+  // ---- render (displaying fee and package data on webpage) ----
+  function render() {
     $('feeRows').innerHTML = fees.map((f) => `
       <tr>
-        <td>${f.name}</td>
-        <td class="text-right">${f.base == null ? 'By belt grade' : money(f.base)}</td>
+        <td>${esc(f.name)}</td>
+        <td class="text-right">${f.category === 'Grading' ? 'By belt grade' : f.base == null ? 'Varies' : money(f.base)}</td>
         <td>${f.inPackages ? 'Yes' : '<span class="badge info">Charged separately</span>'}</td>
         <td><span class="badge ${f.status === 'active' ? 'active' : 'off'}">${f.status === 'active' ? 'Active' : 'Inactive'}</span></td>
         <td class="text-right">
@@ -185,77 +274,106 @@
         </td>
       </tr>`).join('');
     $('pkgRows').innerHTML = packages.map((p) => `
-      <tr><td>${p.name}</td><td>${p.group}</td><td class="text-right">${p.price}</td>
+      <tr><td>${esc(p.name)}</td><td>${esc(p.group)}</td><td class="text-right">${esc(p.price)}</td>
       <td class="text-right"><button class="linkbtn plain" type="button">Edit</button></td></tr>`).join('');
   }
-
+ 
   // ---- fee pop-up (Open Add Fee / Edit Fee form) ----
   /*
   openFee()	 -->    Opens an empty form to add a new fee.
 openFee(fee) -->	Opens the form with existing fee information for editing.
   */
-  function openFee(fee) { 
+  function openFee(fee) {
     editingId = fee ? fee.id : null;
-    // fee exist --> store id in editingId 
+    // fee exist --> store id in editingId
     // fee dont exist --> set editingId to null (to help system to identify user is editing or adding fee)
     $('feeTitle').textContent = fee ? 'Edit Fee' : 'Add New Fee';
     $('f-name').value = fee ? fee.name : '';
     $('f-category').value = fee ? fee.category : 'Registration';
+    $('f-group').value = fee ? fee.group : 'Adult';
     $('f-amount').value = fee && fee.base != null ? fee.base : '';
-    $('f-gst').value = fee && fee.gst ? '1' : '0';
+    renderBelts(fee ? fee.beltPrices : null);
     $('f-discount').value = fee ? fee.discount : 0;
-    $('f-pkg').value = !fee || fee.inPackages ? '1' : '0';
-    $('f-desc').value = '';
-    $('f-status').value = fee ? fee.status : 'active';
+    setRadio('f-pkg', !fee || fee.inPackages ? '1' : '0');
+    $('f-desc').value = fee ? fee.desc : '';
+    setRadio('f-status', fee ? fee.status : 'active');
     $('feeError').textContent = '';
-    feePreview();
+    syncCategory();
     $('feeModal').hidden = false;
+    $('f-name').focus();
   }
-  function feePreview() { /* Calculates and display fee breakdown when admin changes amoount, gst or discount automatically*/
+  // when the fee type changes: Grading shows the belt price list, other types show the single amount box
+  function syncCategory() {
+    const grading = $('f-category').value === 'Grading';
+    $('f-flat').hidden = grading;
+    $('f-belts').hidden = !grading;
+    syncPkgToggle();
+    feePreview();
+  }
+  // Grading and late fees are always charged separately, so "Yes" is switched off for them
+  function syncPkgToggle() {
+    const sep = SEPARATE.includes($('f-category').value);
+    document.querySelector('input[name="f-pkg"][value="1"]').disabled = sep;
+    if (sep) setRadio('f-pkg', '0');
+  }
+  function feePreview() { /* Calculates and display fee breakdown when admin changes amount or discount automatically*/
+    if ($('f-category').value === 'Grading') {          // grading fees: show the lowest to highest final price
+      const prices = beltPrices().filter((p) => p > 0);
+      const d = Number($('f-discount').value || 0);
+      $('fv-base').textContent = 'By belt grade';
+      $('fv-disc').textContent = d ? d + '% off' : 'None';
+      $('fv-gst').textContent = GST_RATE + '% added';
+      $('fv-final').textContent = prices.length ? money(finalOf(Math.min(...prices), d)) + ' - ' + money(finalOf(Math.max(...prices), d)) : '-';
+      return;
+    }
     const base = Number($('f-amount').value);
     if (!base) { ['base','disc','gst','final'].forEach((k) => $('fv-' + k).textContent = '-'); return; }
     const disc = r2(base * Number($('f-discount').value || 0) / 100);
-    const gst = $('f-gst').value === '1' ? r2((base - disc) * GST_RATE / 100) : 0;
+    const gst = r2((base - disc) * GST_RATE / 100);
     $('fv-base').textContent = money(base);
     $('fv-disc').textContent = '- ' + money(disc);
     $('fv-gst').textContent = money(gst);
     $('fv-final').textContent = money(r2(base - disc + gst));
   }
-  $('f-category').addEventListener('change', () => {
-    if (['Grading', 'Late fee'].includes($('f-category').value)) $('f-pkg').value = '0';
-  });
-  ['f-amount', 'f-gst', 'f-discount'].forEach((id) => $(id).addEventListener('input', feePreview));
-  $('f-gst').addEventListener('change', feePreview);
-
+  $('f-category').addEventListener('change', syncCategory);
+  ['f-amount', 'f-discount'].forEach((id) => $(id).addEventListener('input', feePreview));
+  $('f-belt-grid').addEventListener('input', feePreview);
+ 
   $('feeForm').addEventListener('submit', (e) => {
     e.preventDefault();
-    const base = $('f-amount').value === '' ? null : Number($('f-amount').value);
-    const discount = Number($('f-discount').value || 0);
+    const grading = $('f-category').value === 'Grading';
+    const base = grading || $('f-amount').value === '' ? null : Number($('f-amount').value);
     if (base !== null && base <= 0) return $('feeError').textContent = 'Fee amount must be more than 0.';
-    if (discount < 0 || discount > 100) return $('feeError').textContent = 'Discount must be between 0 and 100.';
-    const sep = ['Grading', 'Late fee'].includes($('f-category').value);
-    const data = { name:$('f-name').value.trim(), category:$('f-category').value, base, gst:$('f-gst').value === '1',
-                   discount, inPackages: sep ? false : $('f-pkg').value === '1', status:$('f-status').value };
+    if (grading && beltPrices().some((p) => !(p > 0))) return $('feeError').textContent = 'Enter a fee above 0 for every belt grade.';
+    const sep = SEPARATE.includes($('f-category').value);
+    const data = { beltPrices: grading ? Object.fromEntries(BELTS.map((b) => [b.key, Number($('belt-' + b.key).value)])) : undefined,
+                   name:$('f-name').value.trim(), category:$('f-category').value, group:$('f-group').value, base, gst:true,
+                   discount:Number($('f-discount').value || 0), desc:$('f-desc').value.trim(),
+                   inPackages: sep ? false : getRadio('f-pkg') === '1', status:getRadio('f-status') };
     if (editingId) Object.assign(fees.find((f) => f.id === editingId), data);
     else fees.push({ id: nextId++, ...data });
     $('feeModal').hidden = true;
     render();
   });
-
+ 
   // ---- package pop-up ----
   function openPackage() {
-    ['p-name', 'p-desc', 'p-valid'].forEach((id) => $(id).value = '');
+    ['p-name', 'p-desc'].forEach((id) => $(id).value = '');
+    $('p-group').value = 'Adult';
     $('p-discount').value = 0;
+    $('p-valid').value = '6 months';
+    setRadio('p-status', 'active');
     $('pkgError').textContent = '';
     $('p-fees').innerHTML = fees.map((f) => {
       const ok = f.inPackages && f.status === 'active' && f.base != null;
       return `<label class="fee-pick ${ok ? '' : 'off'}">
         <input type="checkbox" value="${f.id}" ${ok ? '' : 'disabled'}>
-        <span>${f.name}</span>
+        <span>${esc(f.name)}</span>
         <span>${ok ? money(f.base) : 'Charged separately'}</span></label>`;
     }).join('');
     pkgPreview();
     $('pkgModal').hidden = false;
+    $('p-name').focus();
   }
   const picked = () => [...document.querySelectorAll('#p-fees input:checked')].map((i) => fees.find((f) => f.id === Number(i.value)));
   function pkgTotals() {
@@ -268,29 +386,31 @@ openFee(fee) -->	Opens the form with existing fee information for editing.
   }
   function pkgPreview() {
     const t = pkgTotals();
-    $('pp-lines').innerHTML = t.list.map((f) => `<div class="kv"><span>${f.name}</span><span>${money(f.base)}</span></div>`).join('');
+    $('pp-lines').innerHTML = t.list.map((f) => `<div class="kv"><span>${esc(f.name)}</span><span>${money(f.base)}</span></div>`).join('');
     $('pv-sub').textContent = money(t.sub);
     $('pv-disc').textContent = '- ' + money(t.disc);
     $('pv-gst').textContent = money(t.gst);
     $('pv-final').textContent = money(t.final);
   }
   $('p-fees').addEventListener('change', pkgPreview);
-  $('p-discount').addEventListener('input', pkgPreview);
-
+  $('p-discount').addEventListener('change', pkgPreview);
+ 
   $('pkgForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const t = pkgTotals();
     if (t.list.length === 0) return $('pkgError').textContent = 'Select at least one fee.';
-    packages.push({ name: $('p-name').value.trim(), group: $('p-group').value, price: money(t.final) });
+    packages.push({ name: $('p-name').value.trim(), group: $('p-group').value, price: money(t.final),
+                    valid: $('p-valid').value, status: getRadio('p-status'), desc: $('p-desc').value.trim() });
     $('pkgModal').hidden = true;
     render();
   });
-
+ 
   // ---- buttons ----
   $('addFee').addEventListener('click', () => openFee(null));
   $('addPackage').addEventListener('click', openPackage);
   document.addEventListener('click', (e) => {
     if (e.target.matches('[data-close]')) e.target.closest('.backdrop').hidden = true;
+    if (e.target.classList.contains('backdrop')) e.target.hidden = true;     // click the dark area to close
     const edit = e.target.closest('[data-edit]');
     const tog = e.target.closest('[data-toggle]');
     if (edit) openFee(fees.find((f) => f.id === Number(edit.dataset.edit)));
@@ -300,7 +420,10 @@ openFee(fee) -->	Opens the form with existing fee information for editing.
       render();
     }
   });
-
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') document.querySelectorAll('.backdrop').forEach((b) => b.hidden = true);
+  });
+ 
   render();
 </script>
 </body>
