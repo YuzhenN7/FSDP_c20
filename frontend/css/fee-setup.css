@@ -1,0 +1,196 @@
+/* WORKS: var(--name) where the name is in the :root block of styles.css (e.g. var(--muted)). */
+/* DOESN'T WORK: var(--name) where the name is not in styles.css (e.g. var(--grey)); the browser ignores the line. */
+
+/* ---------- Page extras ---------- */
+.container.wide { 
+    max-width: 1100px; 
+}
+.card-head { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-start; 
+    gap: 16px; 
+    margin-bottom: 8px; 
+}
+.card-head h2 {
+    margin-bottom: 2px; 
+}
+.table-wrap { 
+    overflow-x: auto; 
+}
+.text-right { 
+    text-align: right; 
+}
+.footnote { 
+    margin: 12px 0 0; 
+    font-size: 13px; 
+    color: var(--muted); 
+}
+
+/* ---------- Extra badge colours ---------- */
+.badge.active {
+     background: var(--green-bg); 
+     color: var(--green); 
+}
+.badge.off { 
+    background: #e9ebef; 
+    color: var(--muted); 
+}
+.badge.info { 
+    background: var(--pill); 
+    color: var(--navy); 
+}
+
+/* ---------- Link-style buttons in table rows ---------- */
+.linkbtn.plain { 
+    padding: 0 8px; 
+    font-weight: 600; 
+    text-decoration: none; 
+}
+.linkbtn.plain:hover { 
+    text-decoration: underline; 
+}
+.linkbtn.danger { 
+    color: var(--red); 
+}
+
+/* ---------- Pop-ups (Add Fee, Create Package) ---------- */
+.backdrop {
+    position: fixed; 
+    inset: 0; 
+    z-index: 20;
+    background: rgba(22, 32, 46, 0.55);
+    display: flex; 
+    justify-content: center; 
+    align-items: flex-start;
+    padding: 32px 16px; 
+    overflow: auto;
+}
+.backdrop[hidden] { 
+    display: none; 
+}
+
+.modal {
+    background: var(--card); 
+    border-radius: 14px;
+    width: 100%; 
+    max-width: 920px;
+    display: flex; 
+    flex-wrap: wrap; 
+    overflow: hidden;
+}
+
+.modal-head { 
+    flex-basis: 100%; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-start; 
+    gap: 12px; 
+    padding: 24px 32px 16px; 
+}
+.modal-head h2 { 
+    margin-bottom: 2px; 
+}
+.modal-close { 
+    background: none; 
+    border: none; 
+    font-size: 24px; 
+    line-height: 1; 
+    cursor: pointer; 
+    color: var(--muted); 
+}
+
+.modal-form { 
+    flex: 3 1 480px; 
+    padding: 8px 32px 20px; 
+    border-top: 1px solid var(--border); 
+}
+
+.modal-preview {
+    flex: 2 1 280px; 
+    padding: 20px 28px;
+    background: #f6f8fb; 
+    border-top: 1px solid var(--border); 
+    border-left: 1px solid var(--border);
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px;
+}
+
+.modal-actions { 
+    flex-basis: 100%; 
+    display: flex; 
+    justify-content: flex-end; 
+    gap: 12px; 
+    padding: 16px 32px; 
+    border-top: 1px solid var(--border); 
+}
+
+.modal-section {
+    margin-top: 18px; 
+    padding-bottom: 6px;
+    font-size: 12px; 
+    font-weight: 700; 
+    letter-spacing: 0.06em; 
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-warn { 
+    font-size: 13px; 
+    line-height: 1.5; 
+    background: var(--amber-bg); 
+    color: var(--amber); 
+    border-radius: 8px; 
+    padding: 10px 12px; 
+    margin-top: 4px; 
+}
+
+/* ---------- Price preview ---------- */
+.preview-title { 
+    font-size: 12px; 
+    letter-spacing: 0.06em; 
+    color: var(--muted); 
+}
+
+.kv.total { 
+    border-top: 1px solid var(--border); 
+    margin-top: 6px; 
+    padding-top: 12px; 
+    font-size: 16px; 
+}
+.kv.total span:last-child { 
+    color: var(--navy); 
+    font-size: 24px; 
+}
+
+/* ---------- Fee checklist inside Create Package ---------- */
+.picks { 
+    border: 1px solid var(--border); 
+    border-radius: 8px; 
+    overflow: hidden; 
+}
+
+.fee-pick {
+    display: flex; 
+    align-items: center; 
+    gap: 10px;
+    margin: 0; 
+    padding: 10px 14px;
+    font-size: 14px; 
+    font-weight: 400;
+    border-bottom: 1px solid var(--border);
+}
+
+.fee-pick:last-child { 
+    border-bottom: none; 
+}
+.fee-pick input { 
+    width: auto; 
+}
+.fee-pick span:nth-child(2) { 
+    flex: 1; 
+}
+.fee-pick.off { 
+    color: var(--muted); 
+}
