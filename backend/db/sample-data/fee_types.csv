@@ -1,0 +1,6 @@
+name,category,student_group,base_amount,discount_percent,can_be_in_package,description
+Registration Fee,registration,All,60,0,true,One-time registration for new students
+Annual Membership Fee,membership,All,48,0,true,Annual membership renewal
+10-Lesson Pass,class_package,Adult,270,0,true,"Ten adult training lessons, valid for 6 months"
+Grading Fee,grading,All,,0,false,Amount depends on the belt grade
+Late Submission Fee,late_fee,All,22,0,false,Extra charge for late grading applications

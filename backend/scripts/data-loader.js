@@ -63,11 +63,12 @@ function lookup(map, name, what, file, rowNumber) {
 // Deletes all centres, students, classes, fees... (keeps the admin account), ready for a fresh load
 async function clearData() {
   await db.query(
-    `TRUNCATE attendance, payments, fees, gradings, classes, instructors, venues, students, centres, belt_levels
+    `TRUNCATE attendance, payments, fees, gradings, classes, instructors, venues, students, centres, belt_levels, fee_package_items, fee_packages, fee_types
      RESTART IDENTITY CASCADE`
   );
   await db.query(`DELETE FROM users WHERE role = 'student'`);
 }
+// Yu Wen added fee_package_items, fee_packages, fee_types
 
 async function loadCsvData(dirName = 'sample-data') {
   const dir = path.isAbsolute(dirName) ? dirName : path.join(DB_DIR, dirName);
@@ -80,6 +81,9 @@ async function loadCsvData(dirName = 'sample-data') {
   const classes = new Map();      // key: "centre|class name"
   const students = new Map();     // key: email
   const fees = new Map();         // key: "email|description"
+  // Yu Wen added these two below
+  const feeTypes = new Map();    // key: name
+  const packages = new Map();     // key: name 
 
   for (const r of readCsv(dir, 'belts.csv')) {
     const { rows } = await db.query(
@@ -179,6 +183,35 @@ async function loadCsvData(dirName = 'sample-data') {
       [feeId, r.amount, r.method, r.reference, r.paid_at]
     );
   }
+
+  /* YuWen Added these below */
+    for (const r of readCsv(dir, 'fee_types.csv')) {
+    const { rows } = await db.query(
+      `INSERT INTO fee_types (name, category, student_group, base_amount, discount_percent, can_be_in_package, description)
+       VALUES ($1, COALESCE($2, 'other'), COALESCE($3, 'All'), $4::numeric, COALESCE($5::numeric, 0), COALESCE($6::boolean, TRUE), $7)
+       RETURNING id`,
+      [r.name, r.category, r.student_group, r.base_amount, r.discount_percent, r.can_be_in_package, r.description]
+    );
+    feeTypes.set(r.name, rows[0].id);
+  }
+
+  for (const r of readCsv(dir, 'fee_packages.csv')) {
+    const { rows } = await db.query(
+      `INSERT INTO fee_packages (name, student_group, discount_percent, validity, description)
+       VALUES ($1, COALESCE($2, 'All'), COALESCE($3::numeric, 0), $4, $5) RETURNING id`,
+      [r.name, r.student_group, r.discount_percent, r.validity, r.description]
+    );
+    packages.set(r.name, rows[0].id);
+  }
+
+  n = 1;
+  for (const r of readCsv(dir, 'fee_package_items.csv')) {
+    n++;
+    const packageId = lookup(packages, r.package_name, 'package', 'fee_package_items.csv', n);
+    const feeTypeId = lookup(feeTypes, r.fee_type_name, 'fee type', 'fee_package_items.csv', n);
+    await db.query('INSERT INTO fee_package_items (package_id, fee_type_id) VALUES ($1, $2)', [packageId, feeTypeId]);
+  } 
+  /* YuWen added until here */
 
   n = 1;
   for (const r of readCsv(dir, 'attendance.csv')) {

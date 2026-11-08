@@ -92,3 +92,44 @@ CREATE TABLE IF NOT EXISTS attendance (
   status     TEXT NOT NULL CHECK (status IN ('present', 'absent')),
   UNIQUE (class_id, student_id, class_date)
 );
+
+
+/* Added this for fees and package page for admin POV - Yu Wen */
+CREATE TABLE IF NOT EXISTS fee_types (
+  id                SERIAL PRIMARY KEY,
+  name              TEXT NOT NULL UNIQUE,
+  category          TEXT NOT NULL DEFAULT 'other'
+                    CHECK (category IN ('registration','membership','class_package','grading','late_fee','other')),
+  student_group     TEXT NOT NULL DEFAULT 'All' CHECK (student_group IN ('Adult','Children','All')),
+  base_amount       NUMERIC(10, 2),
+  discount_percent  NUMERIC(5, 2) NOT NULL DEFAULT 0 CHECK (discount_percent BETWEEN 0 AND 100),
+  can_be_in_package BOOLEAN NOT NULL DEFAULT TRUE,
+  description       TEXT,
+  is_active         BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS fee_packages (
+  id               SERIAL PRIMARY KEY,
+  name             TEXT NOT NULL UNIQUE,
+  student_group    TEXT NOT NULL DEFAULT 'All' CHECK (student_group IN ('Adult','Children','All')),
+  discount_percent NUMERIC(5, 2) NOT NULL DEFAULT 0 CHECK (discount_percent BETWEEN 0 AND 100),
+  validity         TEXT,
+  description      TEXT,
+  is_active        BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS fee_package_items (
+  package_id  INTEGER NOT NULL REFERENCES fee_packages(id) ON DELETE CASCADE,
+  fee_type_id INTEGER NOT NULL REFERENCES fee_types(id),
+  PRIMARY KEY (package_id, fee_type_id)
+);
+
+CREATE TABLE IF NOT EXISTS payment_attempts (
+  id             SERIAL PRIMARY KEY,
+  fee_id         INTEGER NOT NULL REFERENCES fees(id) ON DELETE CASCADE,
+  session_id     TEXT NOT NULL UNIQUE,
+  amount         NUMERIC(10, 2) NOT NULL,
+  status         TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','paid','failed')),
+  failure_reason TEXT,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
