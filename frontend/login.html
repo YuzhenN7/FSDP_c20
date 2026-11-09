@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log in · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/scrum5-login.css">
+</head>
+<body class="s1-login-screen">
+  <main class="s1-login-card">
+    <section class="s1-login-left" aria-label="Welcome">
+      <div class="s1-brand">Aikido Shinjukai</div>
+      <div class="s1-accent-line" aria-hidden="true"></div>
+      <h1>Welcome back</h1>
+      <p class="s1-subtitle" id="role-description">Manage student records, training terms and class schedules in one place.</p>
+      <ul class="s1-benefits" id="benefits"></ul>
+      <footer>For authorised Aikido Shinjukai members and headquarters staff.</footer>
+    </section>
+    <section class="s1-login-right" aria-label="Log in">
+      <h2>Sign in to your account</h2>
+      <p class="s1-small-muted">Choose your access type to continue.</p>
+      <div class="s1-role-tabs" role="group" aria-label="Account type">
+        <button type="button" data-login-role="admin" aria-pressed="true">Admin</button>
+        <button type="button" data-login-role="student" aria-pressed="false">Student</button>
+        <button type="button" data-login-role="instructor" aria-pressed="false">Instructor</button>
+      </div>
+      <p id="login-error" class="s1-auth-alert" role="alert" hidden></p>
+      <form id="login-form">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" placeholder="Enter your email" required>
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+        <button class="btn" id="submit-login" type="submit">Log in as admin</button>
+      </form>
+      <p class="s1-hint" id="role-hint">Admin access is restricted to authorised headquarters staff.</p>
+    </section>
+  </main>
+  <script src="/js/api.js"></script>
+  <script src="/js/login-sprint1.js"></script>
+</body>
+</html>

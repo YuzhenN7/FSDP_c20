@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Student records · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css"><link rel="stylesheet" href="/css/scrum6-members.css">
+</head><body data-role="admin" data-page="members">
+<main class="container">
+  <header class="page-head"><h1>Student records</h1>
+    <p class="muted">Create, search, update or deactivate student memberships. Principal dojo and belt are recorded here.</p>
+  </header>
+  <section class="s1-panel">
+    <h2 id="form-heading">Add a student</h2>
+    <p class="s1-lead">Membership details are recorded by headquarters staff. Current belt and payment eligibility are separate matters.</p>
+    <form id="member-form">
+      <div class="s1-fields">
+        <label>Name <input name="name" maxlength="150" required placeholder="Student's full name"></label>
+        <label>Email <input name="email" type="email" required placeholder="name@example.com"></label>
+        <label id="password-row">Initial login password <input name="password" type="password" minlength="8" required autocomplete="new-password" placeholder="At least 8 characters"></label>
+        <label>Principal dojo <select name="centre_id" required><option value="">Select dojo</option></select></label>
+        <label>Current belt <select name="belt_id" required><option value="">Select current belt</option></select></label>
+        <label>Membership status <select name="membership_status"><option value="active">Active</option><option value="suspended">Suspended</option><option value="inactive">Inactive</option></select></label>
+        <label>Membership start date <input name="joined_on" type="date" required></label>
+      </div>
+      <div class="s1-actions"><button class="btn" type="submit" id="save-student">Create student</button>
+        <button class="btn outline" type="button" id="cancel-edit" hidden>Cancel edit</button>
+        <span class="s1-help">Required fields must be completed. Duplicate emails are rejected.</span>
+      </div>
+    </form>
+    <div id="form-message" class="s1-message" role="status" hidden></div>
+  </section>
+  <section class="s1-panel">
+    <h2>All students</h2>
+    <div class="s1-filter">
+      <input id="search" type="search" aria-label="Search students" placeholder="Search name or email">
+      <select id="filter-dojo" aria-label="Filter principal dojo"><option value="">All dojos</option></select>
+      <select id="filter-status" aria-label="Filter membership status"><option value="">All statuses</option><option>active</option><option>suspended</option><option>inactive</option></select>
+      <button class="btn outline" id="search-button" type="button">Search</button>
+    </div>
+    <div id="members-table" class="s1-table-wrap" aria-live="polite">Loading students…</div>
+  </section>
+  <div class="s1-note">The grading SOP requires at least 3 months of membership, no outstanding membership fees, and evidence checks before grading. A student's active membership status alone does not establish grading eligibility.</div>
+</main>
+<script src="/js/api.js"></script><script src="/js/ui.js"></script><script src="/js/layout.js"></script>
+<script src="/js/members-sprint1.js"></script>
+</body></html>
