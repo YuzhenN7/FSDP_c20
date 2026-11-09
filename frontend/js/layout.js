@@ -15,6 +15,7 @@ const ADMIN_NAV = [
   { page: 'grading', label: 'Grading', href: '/admin/grading.html' },
   { page: 'attendance', label: 'Attendance', href: '/admin/attendance.html' },
   { page: 'fees', label: 'Fees', href: '/admin/fees.html' },
+  { page: 'fee-setup', label: 'Fee setup', href: '/admin/fee-setup.html' },  // added by Yu Wen
   { page: 'payments', label: 'Payments', href: '/admin/payments.html' },
   { page: 'reports', label: 'Reports', href: '/admin/reports.html' },
 ];
