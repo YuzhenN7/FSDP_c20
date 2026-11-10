@@ -5,40 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Members · Aikido Shinjukai</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body data-role="admin" data-page="members">
-  <main class="container">
+  <main class="container wide">
     <div class="page-head">
-      <h1>Members</h1>
-      <p class="muted">All members (students) across every centre.</p>
+      <h1 id="title">Students</h1>
     </div>
 
-    <section class="card" id="list">Loading...</section>
-
-    <div class="todo">
-      <strong>To build here:</strong> search/filter by centre, edit a student (e.g. change their centre).
-      API: <code>memberRoutes.js</code>, <code>memberController.js</code> and <code>memberModel.js</code> in <code>backend/</code>.
+    <!-- The list of all students -->
+    <div class="toolbar" id="filters">
+      <label>Main centre
+        <select id="centre"></select>
+      </label>
     </div>
+    <section class="card scroll-x" id="directory">Loading...</section>
+
+    <!-- One student's profile (shown when you click a name) -->
+    <section id="profile" hidden></section>
   </main>
 
   <script src="/js/api.js"></script>
   <script src="/js/ui.js"></script>
   <script src="/js/layout.js"></script>
-  <script>
-    (async () => {
-      try {
-        const students = await api.get('/members');
-        renderTable('#list', [
-          { label: 'Name', key: 'name' },
-          { label: 'Email', key: 'email' },
-          { label: 'Centre', key: 'centre' },
-          { label: 'Belt', key: 'belt' },
-          { label: 'Joined', render: (s) => esc(formatDate(s.joined_on)) },
-        ], students);
-      } catch (err) {
-        showError('#list', err);
-      }
-    })();
-  </script>
+  <script src="/js/students.js"></script>
 </body>
 </html>

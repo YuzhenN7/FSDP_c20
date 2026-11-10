@@ -5,36 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Centres · Aikido Shinjukai</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body data-role="admin" data-page="centres">
-  <main class="container">
+  <main class="container wide">
     <div class="page-head">
       <h1>Centres</h1>
-      <p class="muted">Every training centre, in one place.</p>
     </div>
 
-    <section class="card" id="list">Loading...</section>
-
-    <div class="todo">
-      <strong>To build here:</strong> add, edit and remove a centre. API: <code>centreRoutes.js</code>, <code>centreController.js</code> and <code>centreModel.js</code> in <code>backend/</code>.
+    <div class="toolbar">
+      <label>Search
+        <input id="search" placeholder="Name or address">
+      </label>
+      <label>Region
+        <select id="region"></select>
+      </label>
+      <label>Condition
+        <select id="condition"></select>
+      </label>
+      <button class="btn push-right" id="edit" type="button">Edit</button>
     </div>
+
+    <section class="card scroll-x" id="list">Loading...</section>
+
+    <p class="note">
+      Centre names and addresses come from the database. Region and condition are not stored yet,
+      so what you set here resets when the page reloads.
+    </p>
   </main>
 
   <script src="/js/api.js"></script>
   <script src="/js/ui.js"></script>
   <script src="/js/layout.js"></script>
-  <script>
-    (async () => {
-      try {
-        const centres = await api.get('/centres');
-        renderTable('#list', [
-          { label: 'Centre', key: 'name' },
-          { label: 'Address', key: 'address' },
-        ], centres);
-      } catch (err) {
-        showError('#list', err);
-      }
-    })();
-  </script>
+  <script src="/js/centres.js"></script>
 </body>
 </html>

@@ -5,42 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Classes · Aikido Shinjukai</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body data-role="admin" data-page="classes">
-  <main class="container">
+  <main class="container wide">
+    <p class="crumb">Administration / Classes</p>
     <div class="page-head">
       <h1>Classes</h1>
-      <p class="muted">Class schedule, with the instructor and venue for each class.</p>
     </div>
 
-    <section class="card" id="list">Loading...</section>
-
-    <div class="todo">
-      <strong>To build here:</strong> create and edit classes, and assign an instructor and a venue to each one.
-      API: the class files in <code>backend/</code> (they also cover venues and instructors).
-      Some classes in the sample data have no instructor or venue yet, so there is something to assign.
+    <div class="toolbar">
+      <label>Centre
+        <select id="centre"></select>
+      </label>
     </div>
+
+    <div class="tabs" id="tabs"></div>
+
+    <section class="card" id="panel">Loading...</section>
+
+    <p class="note">
+      Classes, venues and instructors come from the database. Changes made on this page
+      (new classes, assignments, venues, availability) are not saved yet and reset when the page reloads.
+    </p>
   </main>
 
   <script src="/js/api.js"></script>
   <script src="/js/ui.js"></script>
   <script src="/js/layout.js"></script>
-  <script>
-    (async () => {
-      try {
-        const classes = await api.get('/classes');
-        renderTable('#list', [
-          { label: 'Centre', key: 'centre' },
-          { label: 'Class', key: 'name' },
-          { label: 'Day', key: 'day_of_week' },
-          { label: 'Time', render: (c) => `${esc(formatTime(c.start_time))} - ${esc(formatTime(c.end_time))}` },
-          { label: 'Venue', render: (c) => (c.venue ? esc(c.venue) : '<span class="muted">Not assigned</span>') },
-          { label: 'Instructor', render: (c) => (c.instructor ? esc(c.instructor) : '<span class="muted">Not assigned</span>') },
-        ], classes);
-      } catch (err) {
-        showError('#list', err);
-      }
-    })();
-  </script>
+  <script src="/js/classes.js"></script>
 </body>
 </html>
