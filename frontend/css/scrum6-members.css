@@ -25,3 +25,61 @@
 @media(max-width:540px){.s1-fields{grid-template-columns:1fr}.s1-panel{padding:16px}}
 .s1-fields [hidden] { display:none !important; }
 .s1-panel [hidden] { display:none !important; }
+
+
+/* Standalone visual defaults for SCRUM-6 / SCRUM-17 pages.
+   Shared styles.css, when present, still loads before this file; this page-specific
+   fallback also keeps Live Server previews styled on older branches. */
+body.s1-admin-page {
+  --navy: #1d3056;
+  --navy-dark: #172745;
+  --bg: #f5f4ee;
+  --text: #16202e;
+  --muted: #66758a;
+  --border: #e3e5eb;
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+}
+body.s1-admin-page, body.s1-admin-page *, body.s1-admin-page *::before, body.s1-admin-page *::after { box-sizing: border-box; }
+body.s1-admin-page .container { width: min(1100px, 100%); padding: 38px 28px 70px; margin: 0 auto; }
+body.s1-admin-page .page-head { margin-bottom: 22px; }
+body.s1-admin-page .page-head h1 { color: var(--navy); font-weight: 750; font-size: clamp(25px, 3vw, 32px); letter-spacing: -.025em; line-height: 1.2; margin: 0 0 7px; }
+body.s1-admin-page .page-head .muted { color: #65758b; font-size: 14px; margin: 0; line-height: 1.6; }
+body.s1-admin-page .s1-panel h2 { font-size: 18px; font-weight: 750; line-height: 1.35; }
+body.s1-admin-page .s1-fields { align-items: start; }
+body.s1-admin-page label { display: block; font-size: 13px; font-weight: 650; color: #293b55; line-height: 1.35; }
+body.s1-admin-page input:not([type="checkbox"]), body.s1-admin-page select,
+body.s1-admin-page textarea { display: block; width: 100%; min-width: 0; padding: 11px 12px; border: 1px solid #d7dce6; border-radius: 8px; background: #fff; color: #1c2940; font: inherit; font-size: 14px; min-height: 43px; }
+body.s1-admin-page input:focus, body.s1-admin-page select:focus, body.s1-admin-page textarea:focus { outline: 2px solid #b5c9e5; outline-offset: 1px; border-color: var(--navy); }
+body.s1-admin-page .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--navy); border-radius: 8px; background: var(--navy); color: #fff; padding: 10px 17px; min-height: 42px; font: inherit; font-size: 13px; font-weight: 650; line-height: 1.2; cursor: pointer; text-decoration: none; white-space: nowrap; }
+body.s1-admin-page .btn:hover { background: var(--navy-dark); }
+body.s1-admin-page .btn.outline { background: #fff; color: var(--navy); }
+body.s1-admin-page .btn.outline:hover { background: #edf2fa; }
+body.s1-admin-page .btn.small { min-height: 32px; padding: 7px 11px; font-size: 12px; }
+body.s1-admin-page .btn:disabled { opacity: .55; cursor: not-allowed; }
+body.s1-admin-page .s1-table-wrap table { border-collapse: collapse; width: 100%; }
+body.s1-admin-page .s1-table-wrap th, body.s1-admin-page .s1-table-wrap td { padding: 12px 10px; border-bottom: 1px solid #e9edf2; text-align: left; vertical-align: middle; font-size: 13px; }
+body.s1-admin-page .s1-table-wrap th { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: #64738b; font-weight: 700; background: #f7f9fc; }
+body.s1-admin-page .s1-table-wrap .empty { color: #6b7586; text-align: center; padding: 18px; }
+body.s1-admin-page .s1-filter input, body.s1-admin-page .s1-filter select { width: auto; margin: 0; }
+body.s1-admin-page .s1-filter input { flex: 1 1 220px; }
+body.s1-admin-page .s1-filter select { flex: 1 1 140px; }
+body.s1-admin-page .s1-filter .btn { flex: 0 0 auto; }
+body.s1-admin-page .s1-select-row select { margin-top: 7px; }
+body.s1-admin-page .s1-select-row .btn { margin-bottom: 0; }
+body.s1-admin-page .s1-note { margin-top: 20px; }
+body.s1-admin-page [hidden] { display: none !important; }
+@media (max-width: 700px) {
+  body.s1-admin-page .container { padding: 24px 14px 50px; }
+  body.s1-admin-page .s1-fields { grid-template-columns: 1fr; }
+  body.s1-admin-page .s1-filter .btn { width: 100%; }
+}
+
+body.s1-admin-page #member-form .s1-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width:700px){body.s1-admin-page #member-form .s1-fields {grid-template-columns:1fr;}}
+
+/* Match the term page’s explanatory SOP note. */
+body.s1-admin-page .s1-note { border-left:3px solid #bfd3eb; padding:10px 14px; background:#f6f9fd; color:#52647d; font-size:13px; line-height:1.6; }

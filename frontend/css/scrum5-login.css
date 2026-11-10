@@ -27,3 +27,44 @@
 @media(max-width:780px){.s1-login-card{grid-template-columns:1fr}.s1-login-left{padding:26px 27px}.s1-accent-line{width:40px;margin:22px 0}.s1-login-left footer{padding-top:10px}.s1-login-right{padding:30px 27px}}
 @media(max-width:540px){.s1-login-screen{padding:12px}.s1-login-left h1{font-size:29px}}
 .s1-login-right [hidden] { display:none !important; }
+
+/* Standalone login page defaults. These also work without shared styles.css. */
+.s1-login-screen {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  font-size: 15px;
+  color: #16202e;
+}
+.s1-login-screen,
+.s1-login-screen *,
+.s1-login-screen *::before,
+.s1-login-screen *::after { box-sizing: border-box; }
+.s1-login-left h1 { margin: 0 0 8px; }
+.s1-login-right form { display: flex; flex-direction: column; width: 100%; }
+.s1-login-right form label { display: block; margin: 13px 0 6px; }
+.s1-login-right form input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #d9dee7;
+  border-radius: 8px;
+  background: #fff;
+  color: #16202e;
+  font: inherit;
+}
+.s1-login-right form input:focus {
+  outline: 2px solid #dbe6f5;
+  border-color: var(--s1-navy);
+}
+.s1-login-right form .btn {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--s1-navy);
+  border-radius: 8px;
+  padding: 12px 18px;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
