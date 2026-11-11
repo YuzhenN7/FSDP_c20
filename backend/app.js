@@ -21,6 +21,7 @@ app.use('/api/belts', require('./routes/beltRoutes'));
 app.use('/api/gradings', require('./routes/gradingRoutes'));
 app.use('/api/fees', require('./routes/feeRoutes'));
 app.use('/api/fee-types', require('./routes/feetypeRoutes.js'));     // admin: fee types set-up
+app.use('/api/fee-packages', require('./routes/feePackageRoutes'));  // admin: fee packages set-up
 app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/attendance', require('./routes/attendanceRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
