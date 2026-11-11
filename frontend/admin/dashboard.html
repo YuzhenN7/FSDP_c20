@@ -5,42 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dashboard · Aikido Shinjukai</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body data-role="admin" data-page="dashboard">
-  <main class="container">
+  <main class="container wide">
     <div class="page-head">
       <h1>Dashboard</h1>
-      <p class="muted">All centres at a glance.</p>
+      <p class="muted">All centres at a glance</p>
     </div>
 
-    <div class="grid" id="stats"></div>
+    <section class="metrics" id="metrics">Loading...</section>
 
-    <div class="grid">
-      <a class="card card-link" href="/admin/classes.html"><h2>Classes</h2><span class="muted">Schedules, instructors and venues</span></a>
-      <a class="card card-link" href="/admin/grading.html"><h2>Grading</h2><span class="muted">Record results and update belts</span></a>
-      <a class="card card-link" href="/admin/fees.html"><h2>Fees</h2><span class="muted">Assign fees and see who has paid</span></a>
-      <a class="card card-link" href="/admin/reports.html"><h2>Reports</h2><span class="muted">Payment tracking and reporting</span></a>
-    </div>
+    <h2>Quick access</h2>
+    <section class="quick">
+      <a href="/admin/classes.html">Classes ↗</a>
+      <a href="/admin/grading.html">Grading ↗</a>
+      <a href="/admin/fees.html">Fees ↗</a>
+      <a href="/admin/reports.html">Reports ↗</a>
+    </section>
   </main>
 
   <script src="/js/api.js"></script>
   <script src="/js/ui.js"></script>
   <script src="/js/layout.js"></script>
-  <script>
-    (async () => {
-      try {
-        const s = await api.get('/reports/summary');
-        const stat = (num, label) => `<div class="card stat"><div class="num">${num}</div><div class="label">${label}</div></div>`;
-        document.getElementById('stats').innerHTML =
-          stat(s.centres, 'Centres') +
-          stat(s.students, 'Students') +
-          stat(s.classes, 'Classes') +
-          stat(formatMoney(s.paid_total), 'Fees paid') +
-          stat(formatMoney(s.unpaid_total), 'Fees outstanding');
-      } catch (err) {
-        showError('#stats', err);
-      }
-    })();
-  </script>
+  <script src="/js/dashboard.js"></script>
 </body>
 </html>
