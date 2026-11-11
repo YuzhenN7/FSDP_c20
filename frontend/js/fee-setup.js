@@ -3,18 +3,17 @@
 // Fee types are saved through /api/fee-types. Packages are still sample data (their routes come next).
 
 (function () {
-  const GST_RATE = 9;                      // example rate only, not a verified Shinju-Kai rate
-  const API = '/fee-types';                // api.js adds the /api in front
+  const GST_RATE = 9;                      
+  const API = '/fee-types';                
+  const PKG_API = '/fee-packages';     
   const SEPARATE = ['grading', 'late_fee'];   // never allowed inside a package
   const r2 = (n) => Math.round(n * 100) / 100;
   const $ = (id) => document.getElementById(id);
 
   let fees = [];
-  let editingId = null;
-  let packages = [
-    { name: 'Starter Pack',    group: 'Adult', price: '$346.62' },
-    { name: 'New Member Pack', group: 'Adult', price: '$408.24' },
-  ];
+  let packages = [];
+  let editingId = null;       // fee being edited (null = adding)
+  let editingPkgId = null;    // package being edited (null = creating)
 
   // database row -> the shape this page uses
   const fromApi = (r) => ({
@@ -29,16 +28,28 @@
     discount_percent: d.discount, can_be_in_package: d.inPackages,
     description: d.description, is_active: d.status === 'active',
   });
+  const pkgfromApi = (r) => ({
+    id: r.id, name: r.name, group: r.student_group, discount: Number(r.discount_percent),
+    validity: r.validity || '', description: r.description || '',
+    status: r.is_active ? 'active' : 'inactive',
+    feeIds: r.items.map((i) => i.id), feeNames: r.items.map((i) => i.name), 
+    price: Number(r.price),
+  });
 
-  async function loadFees() {
-    try {
-      fees = (await api.get(API)).map(fromApi);
-      $('pageError').innerHTML = '';
-    } catch (err) {
-      showError('#pageError', new Error('Could not load fees: ' + err.message));
-    }
-    render();
+  async function loadAll() {
+  $('pageError').innerHTML = '';
+  try {
+    fees = (await api.get(API)).map(fromApi);
+  } catch (err) {
+    showError('#pageError', new Error('Could not load fees: ' + err.message));
   }
+  try {
+    packages = (await api.get(PKG_API)).map(pkgfromApi);
+  } catch (err) {
+    showError('#pageError', new Error('Could not load packages: ' + err.message));
+  }
+  render();
+}
 
   // ---------- pop-up and toggle-button helpers ----------
   function showModal(id) { $(id).hidden = false; document.body.classList.add('modal-open'); }
@@ -71,8 +82,18 @@
     renderTable('#pkgList', [
       { label: 'Package', key: 'name' },
       { label: 'Target group', key: 'group' },
-      { label: 'Price', key: 'price' },
-      { label: '', render: () => '<button class="linkbtn plain" type="button">Edit</button>' },
+      { label: 'Fees included', render: (p) => esc(p.feeNames.join(', ')) },
+      { label: 'Price (incl. GST*)', render: (p) => esc(formatMoney(p.price)) },
+      {
+        label: 'Status',
+        render: (p) => `<span class="badge ${p.status === 'active' ? 'active' : 'off'}">${p.status === 'active' ? 'Active' : 'Inactive'}</span>`,
+      },
+      {
+        label: '',
+        render: (p) => `
+          <button class="linkbtn plain" data-edit-pkg="${p.id}" type="button">Edit</button>
+          <button class="linkbtn plain danger" data-toggle-pkg="${p.id}" type="button">${p.status === 'active' ? 'Deactivate' : 'Activate'}</button>`,
+      },
     ], packages);
   }
 
@@ -129,25 +150,30 @@
       if (editingId) await api.put(`${API}/${editingId}`, toApi(data));
       else await api.post(API, toApi(data));
       closeModals();
-      await loadFees();
+      await loadAll();
     } catch (err) {
       $('feeError').textContent = err.message;   // for example "A fee with this name already exists."
     }
   });
 
-  // ---------- Create Package pop-up (sample data for now) ----------
-  function openPackage() {
-    ['p-name', 'p-desc'].forEach((id) => { $(id).value = ''; });
-    $('p-group').value = 'Adult';
-    $('p-discount').value = 0;
-    $('p-valid').value = '6 months';
-    setToggle('p-status', 'active');
+  // ---------- Create Package pop-up ----------
+  function openPackage(pkg) {
+    editingPkgId = pkg ? pkg.id : null;
+    $('pkgTitle').textContent = pkg ? 'Edit Package' : 'Create Package';
+    $('pkgSubmit').textContent = pkg ? 'Save Package' : 'Create Package';
+    $('p-name').value = pkg ? pkg.name : '';
+    $('p-desc').value = pkg ? pkg.description : '';
+    $('p-group').value = pkg ? pkg.group : 'Adult';
+    $('p-discount').value = pkg ? pkg.discount : 0;
+    $('p-valid').value = pkg && pkg.validity ? pkg.validity : '6 months';
+    setToggle('p-status', pkg ? pkg.status : 'active');
     $('pkgError').textContent = '';
     $('p-fees').innerHTML = fees.map((f) => {
-      const ok = f.inPackages && f.status === 'active' && f.base != null;
+      const checked = pkg ? pkg.feeIds.includes(f.id) : false;    
+      const ok = f.inPackages && f.status != null && (f.status === 'active' || checked);
       const why = !f.inPackages ? 'Charged separately' : f.status !== 'active' ? 'Inactive' : 'No fixed price';
       return `<label class="fee-pick ${ok ? '' : 'off'}">
-        <input type="checkbox" value="${f.id}" ${ok ? '' : 'disabled'}>
+        <input type="checkbox" value="${f.id}" ${ok ? '' : 'disabled'} ${checked ? 'checked' : ''}>
         <span>${esc(f.name)}</span>
         <span>${ok ? esc(formatMoney(f.base)) : why}</span></label>`;
     }).join('');
@@ -180,18 +206,29 @@
   $('p-fees').addEventListener('change', pkgPreview);
   $('p-discount').addEventListener('change', pkgPreview);
 
-  $('pkgForm').addEventListener('submit', (e) => {
+  $('pkgForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const t = pkgTotals();
     if (t.list.length === 0) { $('pkgError').textContent = 'Select at least one fee.'; return; }
-    packages.push({ name: $('p-name').value.trim(), group: $('p-group').value, price: formatMoney(t.final) });
-    closeModals();
-    render();
+    const body = {
+      name: $('p-name').value.trim(), student_group: $('p-group').value,
+      description: $('p-desc').value.trim(), discount_percent: Number($('p-discount').value),
+      validity: $('p-valid').value, is_active: getToggle('p-status') === 'active',
+      fee_type_ids: t.list.map((f) => f.id),
+    };
+    try {
+      if (editingPkgId) await api.put(`${PKG_API}/${editingPkgId}`, body);
+      else await api.post(PKG_API, body);
+      closeModals();
+      await loadAll();
+    } catch (err) {
+      $('pkgError').textContent = err.message;   // Example: "A package with this name already exists."
+    }
   });
 
   // ---------- buttons ----------
   $('addFee').addEventListener('click', () => openFee(null));
-  $('addPackage').addEventListener('click', openPackage);
+  $('addPackage').addEventListener('click', () => openPackage(null));
 
   document.addEventListener('click', async (e) => {
     if (e.target.matches('[data-close]') || e.target.classList.contains('backdrop')) closeModals();
@@ -202,19 +239,30 @@
     const edit = e.target.closest('[data-edit]');
     if (edit) openFee(fees.find((f) => f.id === Number(edit.dataset.edit)));
 
+    const editPkg = e.target.closest('[data-edit-pkg]')
+    if (editPkg) openPackage(packages.find((p) => p.id === Number(editPkg.dataset.editPkg)));
+
     const tog = e.target.closest('[data-toggle]');
     if (tog) {
       const f = fees.find((x) => x.id === Number(tog.dataset.toggle));
       try {
         await api.request('PATCH', `${API}/${f.id}/active`, { is_active: f.status !== 'active' });
-        await loadFees();
+        await loadAll();
       } catch (err) {
         showError('#pageError', err);
       }
+    }
+    const togPkg = e.target.closest('[data-toggle-pkg]');
+    if (togPkg) {
+      const p = packages.find((x) => x.id === Number(togPkg.dataset.togglePkg));
+      try {
+        await api.request('PATCH', `${PKG_API}/${p.id}/active`, { is_active: p.status !== 'active' });
+        await loadAll();
+      } catch (err) { showError('#pageError', err); }
     }
   });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModals(); });
 
   render();
-  loadFees();
+  loadAll();
 })();

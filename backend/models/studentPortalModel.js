@@ -1,5 +1,6 @@
 // STUDENT PORTAL - MODEL: queries about ONE student (the logged-in one).
 const db = require('../config/db');
+const crypto = require('crypto'); // gives each payment attempt its own hard-to-guess session id
 
 async function findStudentByUserId(userId) {
   const { rows } = await db.query('SELECT id FROM students WHERE user_id = $1', [userId]);
@@ -63,6 +64,26 @@ async function getPayment(studentId, paymentId) {
 //   2. insert a row into payments (method 'online', make up a reference)
 //   3. set the fee's status to 'paid'
 //   4. return the new payment
+
+// Pay now: make a pending attempt for one unpaid fee that belongs to this student (according to design in figma)
+async function createAttempt(studentId, feeId) {
+  const { rows } = await db.query(
+    'SELECT id, amount, status FROM fees WHERE id = $1 AND student_id = $2',
+    [feeId, studentId]
+  );
+  const fee = rows[0];
+  if (!fee) return { code: 404, error: 'Fee not found.' };
+  if (fee.status !== 'unpaid') return { code: 400, error: 'This fee is already paid.' };
+  const sessionId = crypto.randomBytes(16).toString('hex');
+  await db.query(
+    `INSERT INTO payment_attempts (fee_id, session_id, amount, status)
+     VALUES ($1, $2, $3, 'pending')`,
+    [fee.id, sessionId, fee.amount]
+  );
+  return { sessionId };
+}
+
+// 
 
 module.exports = {
   findStudentByUserId, getCurrentBelt, getGradingHistory, listFees, listPayments, getPayment,
