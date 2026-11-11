@@ -42,8 +42,33 @@ async function query(text, params) {
   return db.query(text, params);
 }
 
+// Run several queries as one all-or-nothing unit.
+// Usage:  await db.transaction(async (q) => {
+//           await q('UPDATE ... WHERE id = $1', [id]);
+//           await q('INSERT ...', [a, b]);
+//         });
+// If anything inside throws, every change is rolled back.
+async function transaction(callback) {
+  if (!isLocal) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await callback((text, params) => client.query(text, params));
+      await client.query('COMMIT');
+      return result;
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+  const db = await getLocal();
+  return db.transaction(async (tx) => callback((text, params) => tx.query(text, params || [])));
+}
+
 async function close() {
   if (pool) await pool.end();
 }
 
-module.exports = { query, close, isLocal };
+module.exports = { query, transaction, close, isLocal };
