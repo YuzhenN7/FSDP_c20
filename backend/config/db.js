@@ -46,4 +46,29 @@ async function close() {
   if (pool) await pool.end();
 }
 
-module.exports = { query, close, isLocal };
+// Run several queries as one all-or-nothing unit.
+// Usage:  await db.transaction(async (q) => {
+//           await q('UPDATE students SET belt_id = $1 WHERE id = $2', [beltId, studentId]);
+//           await q('INSERT INTO belt_promotions (...) VALUES ($1, $2)', [a, b]);
+//         });
+// If anything inside throws, every change is rolled back.
+async function transaction(callback) {
+  if (!isLocal) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await callback((text, params) => client.query(text, params));
+      await client.query('COMMIT');
+      return result;
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+  const db = await getLocal();
+  return db.transaction(async (tx) => callback((text, params) => tx.query(text, params)));
+}
+
+module.exports = { query, transaction, close, isLocal };
