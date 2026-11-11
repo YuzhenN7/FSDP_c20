@@ -5,19 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Belts · Aikido Shinjukai</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .head-with-actions { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+    .head-actions { display: flex; gap: 8px; }
+    .belt-btn { display: inline-block; padding: 8px 16px; border-radius: 8px; border: 1px solid #1f3a5f;
+                background: #1f3a5f; color: #fff; text-decoration: none; font: inherit; cursor: pointer; }
+    .belt-btn.secondary { background: #fff; color: #1f3a5f; }
+  </style>
 </head>
 <body data-role="admin" data-page="belts">
   <main class="container">
-    <div class="page-head">
-      <h1>Belt levels</h1>
-      <p class="muted">The belt ladder, lowest first. (The sample ladder is an assumption until the client confirms theirs.)</p>
+    <div class="page-head head-with-actions">
+      <div>
+        <h1>Belt levels</h1>
+        <p class="muted">The belt ladder, lowest first. (The sample ladder is an assumption until the client confirms theirs.)</p>
+      </div>
+      <div class="head-actions">
+        <!-- later: a "View dashboard" button goes here, to the left of Edit grades -->
+        <a class="belt-btn" href="/admin/belts-edit.html">Edit grades</a>
+      </div>
     </div>
 
     <section class="card" id="list">Loading...</section>
-
-    <div class="todo">
-      <strong>To build here:</strong> add, rename, reorder and remove belt levels. API: <code>beltRoutes.js</code>, <code>beltController.js</code> and <code>beltModel.js</code> in <code>backend/</code>.
-    </div>
   </main>
 
   <script src="/js/api.js"></script>
