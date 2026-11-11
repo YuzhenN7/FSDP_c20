@@ -71,4 +71,8 @@ async function close() {
   if (pool) await pool.end();
 }
 
+async function close() {
+  if (pool) await pool.end();
+}
+
 module.exports = { query, transaction, close, isLocal };

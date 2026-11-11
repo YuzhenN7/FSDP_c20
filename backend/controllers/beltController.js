@@ -1,5 +1,4 @@
-// BELT LEVELS - CONTROLLER: reads the request, calls the model, sends the answer.
-const beltModel = require('../models/beltModel');
+const Belt = require('../models/beltModel');
 
 // whole number or null (null = not given); NaN = given but invalid
 function parseOrder(value) {
