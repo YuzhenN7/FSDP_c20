@@ -20,9 +20,13 @@ async function start() {
     console.log('Using the NEON database (DATABASE_URL is set).');
   }
 
-  app.listen(port, () => {
-    console.log(`Aikido Shinjukai running at http://localhost:${port}`);
-  });
+  app.listen(port, (err) => {
+  if (err) {
+    console.error(`Could not listen on port ${port}:`, err.message);
+    process.exit(1);
+  }
+  console.log(`Aikido Shinjukai running at http://localhost:${port}`);
+});
 }
 
 start().catch((err) => {

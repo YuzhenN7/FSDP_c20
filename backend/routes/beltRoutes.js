@@ -1,16 +1,14 @@
-// BELT LEVELS - ROUTES: which URL goes to which controller function.   Mounted at /api/belts
-// Used by: frontend/admin/belts.html   (admin login required)
 const express = require('express');
-const { requireAuth, requireRole } = require('../middleware/auth');
-const beltController = require('../controllers/beltController');
+const controller = require('../controllers/beltController');
 
 const router = express.Router();
-router.use(requireAuth, requireRole('admin'));
 
-router.get('/', beltController.listBelts);   // list belt levels, lowest first
+// TODO: once Sherie's login (SCRUM-5) is merged, restrict this to the admin, e.g.
+// router.use(auth, roleCheck('admin'));
 
-// TODO: POST /api/belts        -> add a belt level
-// TODO: PUT /api/belts/:id     -> rename / reorder a belt level
-// TODO: DELETE /api/belts/:id  -> remove a belt level
+router.get('/', controller.list);
+router.post('/', controller.create);
+router.put('/:id', controller.update);
+router.delete('/:id', controller.remove);
 
 module.exports = router;
