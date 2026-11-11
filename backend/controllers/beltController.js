@@ -1,55 +1,72 @@
 const Belt = require('../models/beltModel');
 
-function parseSortOrder(value) {
+// whole number or null (null = not given); NaN = given but invalid
+function parseOrder(value) {
   if (value === undefined || value === null || value === '') return null;
   const n = Number(value);
   return Number.isInteger(n) ? n : NaN;
 }
 
-exports.list = async (req, res, next) => {
-  try {
-    res.json(await Belt.getAll());
-  } catch (err) { next(err); }
-};
+async function listBelts(req, res) {
+  res.json(await beltModel.listBelts());
+}
 
-exports.create = async (req, res, next) => {
+async function createBelt(req, res) {
+  const name = String(req.body.name || '').trim();
+  const sortOrder = parseOrder(req.body.sort_order);
+  if (!name) return res.status(400).json({ error: 'Belt name is required.' });
+  if (Number.isNaN(sortOrder)) return res.status(400).json({ error: 'Order must be a whole number.' });
   try {
-    const name = (req.body.name || '').trim();
-    const sortOrder = parseSortOrder(req.body.sort_order);
-    if (!name) return res.status(400).json({ error: 'Belt name is required.' });
-    if (Number.isNaN(sortOrder)) return res.status(400).json({ error: 'Sort order must be a whole number.' });
-    res.status(201).json(await Belt.create(name, sortOrder));
+    res.status(201).json(await beltModel.createBelt(name, sortOrder));
   } catch (err) {
     if (err.code === '23505') return res.status(409).json({ error: 'That belt name or order already exists.' });
-    next(err);
+    throw err;
   }
-};
+}
 
-exports.update = async (req, res, next) => {
+async function updateBelt(req, res) {
+  const id = Number(req.params.id);
+  const name = String(req.body.name || '').trim();
+  const sortOrder = parseOrder(req.body.sort_order);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: 'Invalid belt id.' });
+  if (!name) return res.status(400).json({ error: 'Belt name is required.' });
+  if (sortOrder === null || Number.isNaN(sortOrder)) {
+    return res.status(400).json({ error: 'Order must be a whole number.' });
+  }
   try {
-    const name = (req.body.name || '').trim();
-    const sortOrder = parseSortOrder(req.body.sort_order);
-    if (!name) return res.status(400).json({ error: 'Belt name is required.' });
-    if (sortOrder === null || Number.isNaN(sortOrder)) {
-      return res.status(400).json({ error: 'Sort order must be a whole number.' });
-    }
-    const belt = await Belt.update(req.params.id, name, sortOrder);
+    const belt = await beltModel.updateBelt(id, name, sortOrder);
     if (!belt) return res.status(404).json({ error: 'Belt not found.' });
     res.json(belt);
   } catch (err) {
     if (err.code === '23505') return res.status(409).json({ error: 'That belt name or order already exists.' });
-    next(err);
+    throw err;
   }
-};
+}
 
-exports.remove = async (req, res, next) => {
+async function moveBelt(req, res) {
+  const id = Number(req.params.id);
+  const direction = req.body.direction;
+  if (!Number.isInteger(id)) return res.status(400).json({ error: 'Invalid belt id.' });
+  if (direction !== 'up' && direction !== 'down') {
+    return res.status(400).json({ error: 'Direction must be up or down.' });
+  }
+  const result = await beltModel.moveBelt(id, direction);
+  if (result === null) return res.status(404).json({ error: 'Belt not found.' });
+  res.json({ message: 'Moved.' });
+}
+
+async function deleteBelt(req, res) {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: 'Invalid belt id.' });
   try {
-    const deleted = await Belt.remove(req.params.id);
-    if (!deleted) return res.status(404).json({ error: 'Belt not found.' });
+    const belt = await beltModel.deleteBelt(id);
+    if (!belt) return res.status(404).json({ error: 'Belt not found.' });
     res.json({ message: 'Belt deleted.' });
   } catch (err) {
-    // 23503 = a student or grading still uses this belt
+    // 23503: a student or grading still uses this belt
     if (err.code === '23503') return res.status(409).json({ error: 'This belt is in use and cannot be deleted.' });
-    next(err);
+    throw err;
   }
-};
+}
+
+module.exports = { listBelts, createBelt, updateBelt, moveBelt, deleteBelt };
