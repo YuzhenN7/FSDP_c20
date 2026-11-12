@@ -1,20 +1,38 @@
-// Login checks used by the routes.
-//   requireAuth        -> must be logged in (sets req.user = { id, name, role })
-//   requireRole('admin') -> must be logged in AND have that role
-
+// SCRUM-5: verifies JWT, then checks the LIVE account before authorising every request.
+// This stops inactive/suspended students from using an already-issued login token.
 const jwt = require('jsonwebtoken');
+const { createHash } = require('node:crypto');
+const db = require('../config/db');
+const userModel = require('../models/userModel');
 
-function requireAuth(req, res, next) {
+async function requireAuth(req, res, next) {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
   if (!token) return res.status(401).json({ error: 'Please log in.' });
 
+  let payload;
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: payload.id, name: payload.name, role: payload.role };
+    payload = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (_) {
+    return res.status(401).json({ error: 'Your session has expired. Please log in again.' });
+  }
+
+  try {
+    const tokenHash = createHash('sha256').update(token).digest('hex');
+    const { rows: revoked } = await db.query(
+      'SELECT token_hash FROM revoked_tokens WHERE token_hash = $1', [tokenHash]
+    );
+    if (revoked.length) return res.status(401).json({ error: 'Session ended. Please log in again.' });
+    const user = await userModel.findById(payload.id);
+    if (!user || (user.role === 'student' && user.membership_status !== 'active')) {
+      return res.status(401).json({ error: 'Your account is unavailable. Please contact headquarters.' });
+    }
+    req.user = { id: user.id, name: user.name, role: user.role };
+    req.authToken = token;
+    req.tokenExpiry = payload.exp;
     next();
   } catch (err) {
-    return res.status(401).json({ error: 'Your session has expired. Please log in again.' });
+    next(err);
   }
 }
 

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Term timetable · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="../css/styles.css"><link rel="stylesheet" href="../css/scrum17-terms.css">
+</head><body class="s1-admin-page" data-role="admin" data-page="terms">
+<main class="container"><header class="page-head"><h1>Term class schedule</h1>
+ <p class="muted">Set your term dates, choose the weekly classes and review the resulting timetable without public holidays.</p></header>
+ <div id="term-message" class="s1-message" hidden role="status"></div>
+ <div class="s1-two-col">
+  <section class="s1-panel"><h2>Create a term</h2><p class="s1-lead">Create one term with a start and end date.</p>
+   <form id="term-form"><div class="s1-fields">
+    <label>Term name <input name="name" placeholder="e.g. Term 1, 2027" maxlength="120" required></label>
+    <label>Start date <input name="start_date" type="date" required></label>
+    <label>End date <input name="end_date" type="date" required></label>
+   </div><div class="s1-actions"><button class="btn" type="submit">Create term</button></div></form>
+  </section>
+  <section class="s1-panel"><h2>Public holidays</h2>
+   <p class="s1-lead">Only dates entered below are excluded. Confirm dates with an official holiday list before use.</p>
+   <form id="holiday-form"><div class="s1-fields">
+    <label>Date <input name="holiday_date" type="date" required></label>
+    <label>Holiday name <input name="name" maxlength="150" placeholder="Holiday name" required></label>
+   </div><div class="s1-actions"><button class="btn outline" type="submit">Add holiday</button></div></form>
+   <ul id="holidays-list" class="s1-list" aria-live="polite"></ul>
+  </section>
+ </div>
+ <section class="s1-panel"><h2>Build weekly timetable</h2>
+  <p class="s1-lead">Assign existing classes to a term. Each class repeats on its usual weekday between the term dates.</p>
+  <div class="s1-select-row"><label>Term <select id="selected-term"><option value="">Choose a term</option></select></label>
+    <label>Weekly class <select id="available-class"><option value="">Choose a class</option></select></label>
+    <button class="btn" type="button" id="add-class">Add to term</button>
+  </div>
+  <ul id="weekly-classes" class="s1-list" aria-live="polite"><li>Choose a term to see its weekly classes.</li></ul>
+ </section>
+ <section class="s1-panel"><h2>Scheduled class dates</h2>
+  <p class="s1-lead">Preview generated sessions; listed public holidays are automatically excluded.</p>
+  <div id="term-calendar" class="s1-table-wrap" aria-live="polite">Select a term to view its dates.</div>
+ </section>
+ <div class="s1-note">The grading SOP concerns grading applications, fees and results. It does not provide a general term timetable or public-holiday calendar; term dates and recurring classes must be supplied by the team or headquarters.</div>
+</main>
+<script src="../js/api.js"></script><script src="../js/ui.js"></script><script src="../js/layout.js"></script>
+<script src="../js/terms-sprint1.js"></script>
+</body></html>

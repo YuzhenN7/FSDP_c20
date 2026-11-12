@@ -10,6 +10,7 @@ const ADMIN_NAV = [
   { page: 'dashboard', label: 'Dashboard', href: '/admin/dashboard.html' },
   { page: 'centres', label: 'Centres', href: '/admin/centres.html' },
   { page: 'classes', label: 'Classes', href: '/admin/classes.html' },
+  { page: 'terms', label: 'Term Schedules', href: '/admin/terms.html' },
   { page: 'members', label: 'Members', href: '/admin/members.html' },
   { page: 'belts', label: 'Belts', href: '/admin/belts.html' },
   { page: 'grading', label: 'Grading', href: '/admin/grading.html' },
@@ -59,7 +60,9 @@ const STUDENT_NAV = [
     </div>`;
   document.body.prepend(bar);
 
-  document.getElementById('logout-btn').addEventListener('click', () => {
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    // Always clear the browser session; try server-side token revocation first.
+    try { await api.post('/auth/logout', {}); } catch (_) { /* network/offline logout */ }
     api.clearSession();
     location.href = '/login.html';
   });
