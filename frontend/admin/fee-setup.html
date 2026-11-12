@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fee setup · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/fee-setup.css">
+</head>
+<body data-role="admin" data-page="fee-setup">
+  <main class="container wide">
+    <div class="page-head">
+      <h1>Fee setup</h1>
+      <p class="muted">Set up fee types and packages. Final amounts are worked out for you.</p>
+    </div>
+    <div id="pageError"></div>
+
+    <section class="card">
+      <div class="card-head">
+        <div><h2>Fee Management</h2><div class="muted">Manage all available fee types</div></div>
+        <button class="btn" id="addFee" type="button">Add Fee</button>
+      </div>
+      <div class="table-wrap" id="feeList">Loading...</div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div><h2>Package Management</h2><div class="muted">Combine different fee types into a package</div></div>
+        <button class="btn" id="addPackage" type="button">Create Package</button>
+      </div>
+      <div class="table-wrap" id="pkgList"></div>
+    </section>
+  </main>
+
+  <!-- ADD / EDIT FEE POP-UP -->
+  <div class="backdrop" id="feeModal" hidden>
+    <form class="modal" id="feeForm">
+      <div class="modal-head">
+        <h2 id="feeTitle">Add New Fee</h2>
+        <button class="modal-close" type="button" data-close aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-form">
+        <div class="modal-section">1. FEE DETAILS</div>
+        <label for="f-name">Fee name *</label>
+        <input id="f-name" required placeholder="e.g. 10-Lesson Training Fee">
+        <div class="field-row">
+          <div>
+            <label for="f-category">Fee type *</label>
+            <select id="f-category">
+              <option value="registration">Registration</option>
+              <option value="membership">Membership</option>
+              <option value="class_package">Class Package</option>
+              <option value="grading">Grading</option>
+              <option value="late_fee">Late fee</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="f-group">Applicable student group *</label>
+            <select id="f-group">
+              <option value="Adult">Adult (13 years and above)</option>
+              <option value="Children">Children (below 13 years)</option>
+              <option value="All">All students</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-section">2. PRICING</div>
+        <label for="f-amount">Fee amount (before GST) *</label>
+        <input id="f-amount" type="number" step="0.01" min="0" placeholder="e.g. 270.00">
+        <label for="f-discount">Discount (optional)</label>
+        <select id="f-discount">
+          <option value="0">None</option><option value="5">5%</option><option value="10">10%</option>
+          <option value="15">15%</option><option value="20">20%</option>
+        </select>
+        <label>Can it be included in a package?</label>
+        <div class="toggle" id="f-pkg">
+          <button type="button" class="on" data-val="1">Yes</button>
+          <button type="button" data-val="0">No</button>
+        </div>
+        <p class="modal-note">*Choose No for fees charged on their own, such as grading and late submission fees.</p>
+
+        <div class="modal-section">3. ADDITIONAL INFORMATION</div>
+        <label for="f-desc">Description</label>
+        <textarea id="f-desc" rows="2" placeholder="e.g. Ten adult training lessons, valid for 6 months"></textarea>
+        <label>Fee status</label>
+        <div class="toggle" id="f-status">
+          <button type="button" class="on" data-val="active">Active</button>
+          <button type="button" data-val="inactive">Inactive</button>
+        </div>
+        <p class="error" id="feeError"></p>
+      </div>
+      <div class="modal-preview">
+        <div class="preview-title">PRICE PREVIEW</div>
+        <div class="kv"><span>Fee amount</span><span id="fv-base">-</span></div>
+        <div class="kv"><span>Discount</span><span id="fv-disc">-</span></div>
+        <div class="kv"><span>GST (9%*)</span><span id="fv-gst">-</span></div>
+        <div class="kv total"><span>Final amount</span><span id="fv-final">-</span></div>
+        <div class="modal-warn">Changes apply to new assignments only.</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn outline" type="button" data-close>Cancel</button>
+        <button class="btn" type="submit">Save Fee</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- CREATE PACKAGE POP-UP -->
+  <div class="backdrop" id="pkgModal" hidden>
+    <form class="modal" id="pkgForm">
+      <div class="modal-head">
+        <h2 id="pkgTitle">Create Package</h2>
+        <button class="modal-close" type="button" data-close aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-form">
+        <div class="modal-section">1. PACKAGE DETAILS</div>
+        <label for="p-name">Package name *</label>
+        <input id="p-name" required placeholder="e.g. Starter Pack">
+        <label for="p-group">Applicable student group *</label>
+        <select id="p-group">
+          <option value="Adult">Adult (13 years and above)</option>
+          <option value="Children">Children (below 13 years)</option>
+          <option value="All">All students</option>
+        </select>
+        <label for="p-desc">Package description</label>
+        <textarea id="p-desc" rows="2" placeholder="e.g. Annual membership plus 10 adult training lessons."></textarea>
+
+        <div class="modal-section">2. PRICING</div>
+        <div class="picks" id="p-fees"></div>
+        <p class="modal-note">Grading and late submission fees are charged separately and can't be added.</p>
+
+        <div class="modal-section">3. PACKAGE PRICING</div>
+        <label for="p-discount">Package discount (optional)</label>
+        <select id="p-discount">
+          <option value="0">None</option><option value="5">5%</option><option value="10">10%</option>
+          <option value="15">15%</option><option value="20">20%</option>
+        </select>
+
+        <div class="modal-section">4. PACKAGE AVAILABILITY</div>
+        <div class="field-row">
+          <div>
+            <label for="p-valid">Package validity</label>
+            <select id="p-valid">
+              <option>1 month</option><option>3 months</option><option selected>6 months</option>
+              <option>12 months</option><option>No expiry</option>
+            </select>
+          </div>
+          <div>
+            <label>Package status</label>
+            <div class="toggle" id="p-status">
+              <button type="button" class="on" data-val="active">Active</button>
+              <button type="button" data-val="inactive">Inactive</button>
+            </div>
+          </div>
+        </div>
+        <p class="error" id="pkgError"></p>
+      </div>
+      <div class="modal-preview">
+        <div class="preview-title">PRICE PREVIEW</div>
+        <div class="preview-lines" id="pp-lines"></div>
+        <div class="kv"><span>Subtotal</span><span id="pv-sub">-</span></div>
+        <div class="kv"><span>Discount</span><span id="pv-disc">-</span></div>
+        <div class="kv"><span>GST (9%*)</span><span id="pv-gst">-</span></div>
+        <div class="kv total"><span>Final package price</span><span id="pv-final">-</span></div>
+        <div class="modal-warn">Prices are saved when a package is assigned to a student. Later fee changes don't change what they owe.</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn outline" type="button" data-close>Cancel</button>
+        <button class="btn" type="submit" id="pkgSubmit">Create Package</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script src="/js/fee-setup.js"></script>
+</body>
+</html>

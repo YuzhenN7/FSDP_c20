@@ -1,0 +1,14 @@
+student_email,fee_description,amount,method,reference,paid_at
+student@shinjukai.test,Term fee (Sep-Nov 2026),150,online,SAMPLE-0001,2026-09-08 10:30:00+08
+aiden.lim@example.com,Term fee (Sep-Nov 2026),150,online,SAMPLE-0002,2026-09-09 10:30:00+08
+bao.ling.chua@example.com,Term fee (Sep-Nov 2026),150,cash,SAMPLE-0003,2026-09-10 10:30:00+08
+chen.wei@example.com,Term fee (Sep-Nov 2026),129,online,SAMPLE-0004,2026-09-11 10:30:00+08
+eryn.koh@example.com,Term fee (Sep-Nov 2026),129,online,SAMPLE-0005,2026-09-13 10:30:00+08
+farhan.ismail@example.com,Term fee (Sep-Nov 2026),129,cash,SAMPLE-0006,2026-09-14 10:30:00+08
+hana.yamada@example.com,Term fee (Sep-Nov 2026),129,online,SAMPLE-0007,2026-09-16 10:30:00+08
+jia.hui.ng@example.com,Term fee (Sep-Nov 2026),107,online,SAMPLE-0008,2026-09-18 10:30:00+08
+student@shinjukai.test,Registration fee (one-time),60,cash,SAMPLE-0009,2026-09-01 18:00:00+08
+chen.wei@example.com,Registration fee (one-time),60,online,SAMPLE-0010,2026-09-13 18:00:00+08
+grace.teo@example.com,Registration fee (one-time),60,online,SAMPLE-0011,2026-09-05 18:00:00+08
+daniel.ong@example.com,Annual membership renewal,48,cash,SAMPLE-0012,2026-10-05 09:15:00+08
+farhan.ismail@example.com,Annual membership renewal,48,online,SAMPLE-0013,2026-10-05 09:15:00+08

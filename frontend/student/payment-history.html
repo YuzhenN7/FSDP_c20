@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payment history · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-role="student" data-page="payment-history">
+  <main class="container">
+    <div class="page-head">
+      <div>
+        <h1>Payment history</h1>
+       <p class="muted">Everything you've paid, and what is still due. Failed attempts are listed but not counted as paid.</p>
+      </div>
+      <div class="card" style="padding:12px 20px">
+        <div class="muted" style="font-size:14px">Outstanding balance</div>
+        <div id="outstanding" style="font-size:24px;font-weight:700">-</div>
+      </div>
+    </div>
+    
+
+    <section class="card" id="list">Loading...</section>
+    <p><a href="/student/fees.html">Back to my fees</a></p>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    (async () => {
+      try {
+        const [payments, fees] = await Promise.all([
+          api.get('/student/payments'),
+          api.get('/student/fees'),
+        ]);
+
+        // outstanding balance = every fee still unpaid (including GST)
+        const due = fees
+          .filter((f) => f.status === 'unpaid')
+          .reduce((sum, f) => sum + Number(f.total ?? f.amount), 0);
+        document.getElementById('outstanding').textContent = formatMoney(due);
+
+        renderTable('#list', [
+          { label: 'Date', render: (p) => esc(formatDate(p.paid_at)) },
+          { label: 'Fee', key: 'fee' },
+          { label: 'Method', key: 'method' },
+          { label: 'Status', render: (p) => statusBadge(p.status) },
+          { label: 'Amount', render: (p) =>
+            `<span style="${p.status === 'failed' ? 'color:#4A5568' : ''}">${esc(formatMoney(p.amount))}</span>` },
+          //{ label: 'Reference', key: 'reference' },
+          { label: '', render: (p) => (p.status === 'paid'
+              ? `<a href="/student/payment-success.html?id=${esc(p.id)}">View receipt</a>`
+              : '') },
+        ], payments);
+      } catch (err) {
+        showError('#list', err);
+      }
+    })();
+  </script>
+</body>
+</html>

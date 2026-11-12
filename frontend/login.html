@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log in · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="login">
+    <section class="identity">
+      <p>AIKIDO SHINJU-KAI</p>
+      <img src="https://aikidoshinjukai.com.sg/images/logo.png" alt="Aikido Shinju-Kai crest" onerror="this.hidden = true">
+      <p>SINGAPORE · EST. 1988</p>
+      <h1>Dojo administration</h1>
+    </section>
+
+    <section class="signin">
+      <h1>Log in</h1>
+      <form id="login-form">
+        <label for="email">Email address</label>
+        <input id="email" type="email" autocomplete="email" placeholder="name@example.com" required>
+
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+
+        <p class="error" id="error"></p>
+        <button class="btn" id="login-btn" type="submit">Log in →</button>
+      </form>
+      <p class="switch">New student? <a href="/register.html">Create an account</a></p>
+    </section>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+</body>
+</html>

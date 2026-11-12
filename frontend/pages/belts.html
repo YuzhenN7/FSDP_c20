@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Belt Levels</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <main>
+    <h1>Belt Levels</h1>
+    <p id="message"></p>
+
+    <form id="belt-form">
+      <input id="belt-name" placeholder="Belt name" required>
+      <input id="belt-order" type="number" placeholder="Order (optional)">
+      <button type="submit">Add belt</button>
+    </form>
+
+    <table>
+      <thead><tr><th>Order</th><th>Name</th><th>Actions</th></tr></thead>
+      <tbody id="belt-rows"></tbody>
+    </table>
+  </main>
+  <script src="../js/belts.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Classes · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-role="admin" data-page="classes">
+  <main class="container wide">
+    <p class="crumb">Administration / Classes</p>
+    <div class="page-head">
+      <h1>Classes</h1>
+    </div>
+
+    <div class="toolbar">
+      <label>Centre
+        <select id="centre"></select>
+      </label>
+    </div>
+
+    <div class="tabs" id="tabs"></div>
+
+    <section class="card" id="panel">Loading...</section>
+
+    <p class="note">
+      Classes, venues and instructors come from the database. Changes made on this page
+      (new classes, assignments, venues, availability) are not saved yet and reset when the page reloads.
+    </p>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script src="/js/classes.js"></script>
+</body>
+</html>

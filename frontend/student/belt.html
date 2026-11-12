@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My belt · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-role="student" data-page="belt">
+  <main class="container">
+    <div class="page-head">
+      <h1>My belt</h1>
+      <p class="muted">Your current belt and grading history.</p>
+    </div>
+
+    <section class="card">
+      <div class="muted">Current belt</div>
+      <div id="current" style="font-size:26px;font-weight:700;color:var(--navy)">...</div>
+    </section>
+
+    <section class="card">
+      <h2>Grading history</h2>
+      <div id="history">Loading...</div>
+    </section>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    (async () => {
+      try {
+        const data = await api.get('/student/belt');
+        document.getElementById('current').textContent = (data.current && data.current.name) || 'Not set';
+        renderTable('#history', [
+          { label: 'Date', render: (g) => esc(formatDate(g.graded_on)) },
+          { label: 'Graded for', key: 'belt' },
+          { label: 'Result', render: (g) => statusBadge(g.result) },
+          { label: 'Notes', key: 'notes' },
+        ], data.history);
+      } catch (err) {
+        showError('#history', err);
+      }
+    })();
+  </script>
+</body>
+</html>

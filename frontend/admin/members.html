@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Members · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-role="admin" data-page="members">
+  <main class="container wide">
+    <div class="page-head">
+      <h1 id="title">Students</h1>
+    </div>
+
+    <!-- The list of all students -->
+    <div class="toolbar" id="filters">
+      <label>Main centre
+        <select id="centre"></select>
+      </label>
+    </div>
+    <section class="card scroll-x" id="directory">Loading...</section>
+
+    <!-- One student's profile (shown when you click a name) -->
+    <section id="profile" hidden></section>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script src="/js/students.js"></script>
+</body>
+</html>
