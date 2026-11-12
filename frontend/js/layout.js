@@ -1,3 +1,11 @@
+// Adds the top bar + navigation and checks the person is allowed on the page.
+//
+// Put these on <body>:
+//   data-role="admin"   (or "student")  -> page needs that login
+//   data-page="belts"                   -> which nav link to highlight
+//
+// TO ADD A NEW PAGE TO THE MENU: add one line to ADMIN_NAV or STUDENT_NAV below.
+
 const ADMIN_NAV = [
   { page: 'dashboard', label: 'Dashboard', href: '/admin/dashboard.html' },
   { page: 'centres', label: 'Centres', href: '/admin/centres.html' },

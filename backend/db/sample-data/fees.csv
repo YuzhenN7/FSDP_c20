@@ -1,0 +1,21 @@
+student_email,description,amount,due_date,status
+student@shinjukai.test,Term fee (Sep-Nov 2026),150,2026-09-15,paid
+aiden.lim@example.com,Term fee (Sep-Nov 2026),150,2026-09-15,paid
+bao.ling.chua@example.com,Term fee (Sep-Nov 2026),150,2026-09-15,paid
+chen.wei@example.com,Term fee (Sep-Nov 2026),129,2026-09-15,paid
+daniel.ong@example.com,Term fee (Sep-Nov 2026),129,2026-09-15,unpaid
+eryn.koh@example.com,Term fee (Sep-Nov 2026),129,2026-09-15,paid
+farhan.ismail@example.com,Term fee (Sep-Nov 2026),129,2026-09-15,paid
+grace.teo@example.com,Term fee (Sep-Nov 2026),129,2026-09-15,unpaid
+hana.yamada@example.com,Term fee (Sep-Nov 2026),129,2026-09-15,paid
+ivan.raj@example.com,Term fee (Sep-Nov 2026),129,2026-09-15,unpaid
+jia.hui.ng@example.com,Term fee (Sep-Nov 2026),107,2026-09-15,paid
+student@shinjukai.test,Registration fee (one-time),60,2026-09-01,paid
+chen.wei@example.com,Registration fee (one-time),60,2026-09-13,paid
+grace.teo@example.com,Registration fee (one-time),60,2026-09-05,paid
+ivan.raj@example.com,Registration fee (one-time),60,2026-08-03,unpaid
+daniel.ong@example.com,Annual membership renewal,48,2026-10-31,paid
+farhan.ismail@example.com,Annual membership renewal,48,2026-10-31,paid
+aiden.lim@example.com,Annual membership renewal,48,2026-10-31,unpaid
+student@shinjukai.test,Annual membership renewal,48,2026-10-31,unpaid
+student@shinjukai.test,Mass grading fee,65,2026-11-30,unpaid

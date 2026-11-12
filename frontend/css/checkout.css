@@ -1,0 +1,84 @@
+/* Simulated payment gateway page. Load after styles.css; uses only styles.css variables. */
+.co-wrap { 
+    max-width: 860px; 
+    margin: 48px auto; 
+    padding: 0 16px; 
+}
+
+.co-card {
+    display: grid; 
+    grid-template-columns: 1fr 1fr;
+    background: var(--card); 
+    border: 1px solid var(--border);
+    border-radius: 14px; 
+    overflow: hidden;
+}
+.co-left  { 
+    background: var(--pill); 
+    padding: 28px 32px; 
+    min-height: 320px; 
+}
+.co-right { 
+    padding: 28px 32px; 
+}
+
+.co-back { 
+    font-size: 13px; 
+    color: var(--text); 
+}
+.co-label { 
+    margin-top: 28px; 
+    font-size: 13px; 
+    color: var(--muted); 
+}
+.co-fee   { 
+    font-size: 20px; 
+    font-weight: 700; 
+}
+.co-total { 
+    font-size: 34px; 
+    font-weight: 700; }
+.co-student { 
+    display: flex; 
+    gap: 32px; 
+    margin-top: 28px; 
+    font-size: 14px; 
+}
+
+.co-paywith { 
+    font-size: 13px; 
+    font-weight: 700; 
+    margin-bottom: 12px; 
+}
+.co-rows { 
+    background: var(--bg); 
+    border: 1px solid var(--border); 
+    border-radius: 8px; 
+    padding: 4px 16px; 
+}
+.co-rows .kv { 
+    padding: 10px 0; 
+    border-bottom: 1px solid var(--border); 
+    font-size: 13px; 
+}
+.co-rows .kv:last-child { 
+    border-bottom: none; 
+    font-weight: 700; 
+}
+.co-pay { 
+    width: 100%; 
+    margin-top: 20px; 
+    padding: 14px; 
+    font-size: 16px; 
+}
+.co-test { 
+    display: block; 
+    margin: 12px auto 0; 
+    font-size: 12px; 
+}
+
+@media (max-width: 700px) { 
+    .co-card { 
+        grid-template-columns: 1fr; 
+    }
+ }

@@ -1,3 +1,9 @@
+// Loads the CSV files in db/sample-data/ into the database.
+// Used by `npm run db:setup`, `npm run db:reload`, and automatically in local (no-Neon) mode.
+//
+// The CSV files link to each other by NAME / EMAIL (not ids), so they are easy to edit in Excel.
+// See db/sample-data/README.md for what each column means.
+
 const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');

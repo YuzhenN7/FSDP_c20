@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <p class="muted" style="text-align:center;margin-top:80px">Loading...</p>
+  <script src="/js/api.js"></script>
+  <script>
+    // Send people to the right place
+    const user = api.getUser();
+    location.replace(api.getToken() && user ? api.homePageFor(user.role) : '/login.html');
+  </script>
+</body>
+</html>

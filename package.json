@@ -1,0 +1,19 @@
+{
+  "name": "fsdp_c20",
+  "version": "1.0.0",
+  "description": "Starter project for the team. Login, register, navigation and a page + API route for every feature are already in place. Each person fills in their own features.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YuzhenN7/FSDP_c20.git"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/YuzhenN7/FSDP_c20/issues"
+  },
+  "homepage": "https://github.com/YuzhenN7/FSDP_c20#readme"
+}

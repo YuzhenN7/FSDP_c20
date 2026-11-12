@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-role="student" data-page="home">
+  <main class="container">
+    <div class="page-head">
+      <h1 id="greeting">Welcome</h1>
+      <p class="muted">Your belt, fees and payments in one place.</p>
+    </div>
+
+    <div class="grid">
+      <a class="card card-link" href="/student/belt.html">
+        <div class="label muted">Current belt</div>
+        <div class="num" id="belt" style="font-size:24px;font-weight:700;color:var(--navy)">...</div>
+      </a>
+      <a class="card card-link" href="/student/fees.html">
+        <div class="label muted">Fees to pay</div>
+        <div class="num" id="owing" style="font-size:24px;font-weight:700;color:var(--navy)">...</div>
+      </a>
+      <a class="card card-link" href="/student/payment-history.html">
+        <div class="label muted">Payment history</div>
+        <div style="font-size:24px;font-weight:700;color:var(--navy)">View</div>
+      </a>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    (async () => {
+      const user = api.getUser();
+      document.getElementById('greeting').textContent = 'Welcome, ' + user.name;
+      try {
+        const belt = await api.get('/student/belt');
+        document.getElementById('belt').textContent = (belt.current && belt.current.name) || 'Not set';
+        const fees = await api.get('/student/fees');
+        const unpaid = fees.filter((f) => f.status === 'unpaid');
+        const total = unpaid.reduce((sum, f) => sum + Number(f.amount), 0);
+        document.getElementById('owing').textContent = unpaid.length ? formatMoney(total) : 'All paid';
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  </script>
+</body>
+</html>

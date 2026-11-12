@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Edit grades · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .head-with-actions { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+    .belt-btn { display: inline-block; padding: 6px 12px; border-radius: 8px; border: 1px solid #1f3a5f;
+                background: #1f3a5f; color: #fff; text-decoration: none; font: inherit; cursor: pointer; }
+    .belt-btn.secondary { background: #fff; color: #1f3a5f; }
+    .belt-btn.danger { background: #fff; color: #b3261e; border-color: #b3261e; }
+    .belt-btn:disabled { opacity: .4; cursor: default; }
+    .belt-table { width: 100%; border-collapse: collapse; }
+    .belt-table th, .belt-table td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #e6e3dc; }
+    .belt-table td.actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .add-form { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+    .add-form input { padding: 8px 10px; border: 1px solid #cfcac0; border-radius: 8px; font: inherit; }
+    #msg { min-height: 1.5em; margin: 12px 0; }
+    #msg.error { color: #b3261e; }
+    #msg.ok { color: #2e7d32; }
+  </style>
+</head>
+<body data-role="admin" data-page="belts">
+  <main class="container">
+    <div class="page-head head-with-actions">
+      <div>
+        <h1>Edit grades</h1>
+        <p class="muted">Add, rename, reorder and remove belt levels. Order 1 is the lowest belt.</p>
+      </div>
+      <div><a class="belt-btn secondary" href="/admin/belts.html">← Back to belt levels</a></div>
+    </div>
+
+    <p id="msg"></p>
+    <section class="card" id="list">Loading...</section>
+
+    <section class="card">
+      <h2>Add a belt level</h2>
+      <form class="add-form" id="add-form">
+        <input id="new-name" placeholder="Belt name, e.g. 2nd dan" required>
+        <button class="belt-btn" type="submit">Add to the top of the ladder</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    const msg = document.getElementById('msg');
+    const box = document.getElementById('list');
+    const del = (url) => (api.delete || api.del).call(api, url);
+
+    function say(text, isError) {
+      msg.textContent = text || '';
+      msg.className = isError ? 'error' : 'ok';
+    }
+
+    function button(label, className, onClick, disabled) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'belt-btn ' + className;
+      b.textContent = label;
+      b.disabled = !!disabled;
+      b.onclick = onClick;
+      return b;
+    }
+
+    async function run(action, successText) {
+      try {
+        await action();
+        say(successText, false);
+      } catch (err) {
+        say(err.message || 'Something went wrong.', true);
+      }
+      load();
+    }
+
+    function render(belts) {
+      const table = document.createElement('table');
+      table.className = 'belt-table';
+      table.innerHTML = '<thead><tr><th>Order</th><th>Belt</th><th>Actions</th></tr></thead>';
+      const body = document.createElement('tbody');
+
+      belts.forEach((belt, i) => {
+        const tr = document.createElement('tr');
+        const order = document.createElement('td');
+        order.textContent = belt.sort_order;
+        const name = document.createElement('td');
+        name.textContent = belt.name;
+        const actions = document.createElement('td');
+        actions.className = 'actions';
+
+        actions.append(
+          button('Up', 'secondary', () =>
+            run(() => api.post('/belts/' + belt.id + '/move', { direction: 'up' }), 'Moved up.'), i === 0),
+          button('Down', 'secondary', () =>
+            run(() => api.post('/belts/' + belt.id + '/move', { direction: 'down' }), 'Moved down.'),
+            i === belts.length - 1),
+          button('Rename', 'secondary', () => {
+            const newName = prompt('New name for this belt:', belt.name);
+            if (newName === null || !newName.trim()) return;
+            run(() => api.put('/belts/' + belt.id, { name: newName.trim(), sort_order: belt.sort_order }),
+              'Belt renamed.');
+          }),
+          button('Remove', 'danger', () => {
+            if (!confirm('Remove "' + belt.name + '"?')) return;
+            run(() => del('/belts/' + belt.id), 'Belt removed.');
+          })
+        );
+
+        tr.append(order, name, actions);
+        body.append(tr);
+      });
+
+      table.append(body);
+      box.replaceChildren(table);
+    }
+
+    async function load() {
+      try {
+        render(await api.get('/belts'));
+      } catch (err) {
+        showError('#list', err);
+      }
+    }
+
+    document.getElementById('add-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('new-name');
+      const name = input.value.trim();
+      if (!name) return;
+      run(async () => { await api.post('/belts', { name }); input.value = ''; }, 'Belt added.');
+    });
+
+    load();
+  </script>
+</body>
+</html>

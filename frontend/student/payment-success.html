@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payment successful · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-role="student" data-page="fees">
+  <main class="container">
+    <div class="result">
+      <div class="tick">&#10003;</div>
+      <h1>Payment successful</h1>
+      <p class="muted">Your fee is marked as paid. A receipt has been sent to your email.</p>
+
+      <div class="card" id="details">Loading...</div>
+
+      <div class="actions">
+        <a class="btn" href="/student/payment-history.html">View payment history</a>
+        <a class="btn outline" href="/student/fees.html">Back to my fees</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    // Opened as /student/payment-success.html?id=<payment id>
+    (async () => {
+      const id = new URLSearchParams(location.search).get('id');
+      try {
+        const p = await api.get('/student/payments/' + encodeURIComponent(id));
+        document.getElementById('details').innerHTML = `
+          <div class="kv"><span>Fee</span><span>${esc(p.fee)}</span></div>
+          <div class="kv"><span>Amount paid</span><span>${esc(formatMoney(p.amount))}</span></div>
+          <div class="kv"><span>Date</span><span>${esc(formatDate(p.paid_at))}</span></div>
+          <div class="kv"><span>Method</span><span>${esc(p.method)}</span></div>
+          <div class="kv"><span>Reference</span><span>${esc(p.reference || '-')}</span></div>
+          <div class="kv"><span>Status</span><span>${statusBadge(p.status)}</span></div>`;
+      } catch (err) {
+        showError('#details', err);
+      }
+    })();
+  </script>
+</body>
+</html>

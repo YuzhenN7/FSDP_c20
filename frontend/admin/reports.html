@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reports · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-role="admin" data-page="reports">
+  <main class="container">
+    <div class="page-head">
+      <h1>Reports</h1>
+      <p class="muted">Payment reporting across all centres.</p>
+    </div>
+
+    <div class="grid" id="stats"></div>
+
+    <div class="todo">
+      <strong>To build here:</strong> payments by centre, outstanding fees per student, a date filter, and an export.
+      API: <code>reportRoutes.js</code>, <code>reportController.js</code> and <code>reportModel.js</code> in <code>backend/</code>.
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    (async () => {
+      try {
+        const s = await api.get('/reports/summary');
+        const stat = (num, label) => `<div class="card stat"><div class="num">${num}</div><div class="label">${label}</div></div>`;
+        document.getElementById('stats').innerHTML =
+          stat(formatMoney(s.paid_total), 'Fees paid') + stat(formatMoney(s.unpaid_total), 'Fees outstanding');
+      } catch (err) {
+        showError('#stats', err);
+      }
+    })();
+  </script>
+</body>
+</html>
