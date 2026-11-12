@@ -4,7 +4,7 @@ const db = require('../config/db');
 // list all centres
 async function listCentres() {
   const { rows } = await db.query(
-    `SELECT id, name, address FROM centres ORDER BY name`
+    `SELECT id, name, address, region, condition FROM centres ORDER BY name`
   );
   return rows;
 }

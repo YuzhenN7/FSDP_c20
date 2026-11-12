@@ -94,7 +94,10 @@ async function loadCsvData(dirName = 'sample-data') {
   }
 
   for (const r of readCsv(dir, 'centres.csv')) {
-    const { rows } = await db.query('INSERT INTO centres (name, address) VALUES ($1, $2) RETURNING id', [r.name, r.address]);
+    const { rows } = await db.query(
+      `INSERT INTO centres (name, address, region, condition) VALUES ($1, $2, $3, COALESCE($4, 'Open')) RETURNING id`,
+      [r.name, r.address, r.region, r.condition]
+    );
     centres.set(r.name, rows[0].id);
   }
 
