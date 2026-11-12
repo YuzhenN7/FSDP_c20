@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Payment receipt · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .back { display:inline-block; margin-bottom:12px; font-weight:600; color:var(--text); }
+    .rc { max-width:680px; margin:0 auto; }
+    .rc-head { display:flex; align-items:center; gap:12px; }
+    .rc-head h1 { margin:0; }
+    .rc-org { display:flex; justify-content:space-between; gap:16px; margin:12px 0 16px; flex-wrap:wrap; }
+    .rc-org h3 { margin:0; }
+    .rc-org .right { text-align:right; }
+    .rc-bill { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:12px 16px; line-height:1.8; }
+    .rc-table { width:100%; border-collapse:collapse; margin-top:16px; }
+    .rc-table th { background:var(--bg); text-align:left; padding:10px 12px; font-size:13px; letter-spacing:.04em; }
+    .rc-table th:last-child, .rc-table td:last-child { text-align:right; }
+    .rc-table td { padding:12px; }
+    .rc-sum { margin-top:12px; border-top:1px solid var(--border); padding-top:12px; }
+    .rc-sum div { display:flex; justify-content:space-between; padding:4px 12px; }
+    .rc-total { border-top:1px solid var(--border); margin-top:8px; padding-top:12px; font-weight:700; font-size:20px; }
+    .rc-actions { margin-top:16px; }
+    @media print { .back, .rc-actions, nav, header { display:none; } }
+  </style>
+</head>
+<body data-role="student" data-page="payment-history">
+  <main class="container">
+    <a class="back" href="/student/payment-history.html">&larr; Back to payment history</a>
+    <section class="card rc" id="receipt">Loading...</section>
+    <div class="rc rc-actions">
+      <button class="btn" type="button" onclick="window.print()">Print</button>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script src="/js/receipt.js"></script>
+</body>
+</html>
