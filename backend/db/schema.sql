@@ -82,6 +82,20 @@ CREATE TABLE IF NOT EXISTS grading_sessions (
   CHECK (type <> 'private' OR capacity <= 4)
 );
 
+CREATE TABLE IF NOT EXISTS grading_applications (
+  id                 SERIAL PRIMARY KEY,
+  session_id         INTEGER NOT NULL REFERENCES grading_sessions(id) ON DELETE CASCADE,
+  student_id         INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  status             TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  belt_id            INTEGER REFERENCES belt_levels(id),
+  membership_status  TEXT,
+  eligibility_result TEXT NOT NULL DEFAULT 'eligible',
+  remark             TEXT,
+  applied_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+  reviewed_at        TIMESTAMPTZ,
+  UNIQUE (session_id, student_id)
+);
+
 CREATE TABLE IF NOT EXISTS fees (
   id          SERIAL PRIMARY KEY,
   student_id  INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
