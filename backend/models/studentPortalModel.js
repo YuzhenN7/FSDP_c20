@@ -65,8 +65,12 @@ UNION ALL
 
 async function getPayment(studentId, paymentId) {
   const { rows } = await db.query(
-    `SELECT p.id, f.description AS fee, p.amount, p.method, p.reference, p.paid_at, f.status
-     FROM payments p JOIN fees f ON f.id = p.fee_id
+    `SELECT p.id, f.description AS fee, p.amount, p.method, p.reference, p.paid_at, f.status, f.amount AS subtotal, (p.amount - f.amount) AS gst, f.due_date, u.name AS student_name, u.email AS student_email, c.name AS centre
+     FROM payments p
+     JOIN fees f ON f.id = p.fee_id
+     JOIN students s ON s.id = f.student_id
+     JOIN users u ON u.id = s.user_id
+     LEFT JOIN centres c ON c.id = s.centre_id
      WHERE p.id = $1 AND f.student_id = $2`,
     [paymentId, studentId]
   );
