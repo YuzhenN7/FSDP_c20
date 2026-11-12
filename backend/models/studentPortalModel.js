@@ -36,19 +36,32 @@ async function listFees(studentId) {
      ORDER BY (status = 'unpaid') DESC, due_date DESC NULLS LAST, id DESC`,
     [studentId]
   );
-  return rows;
+  // Deleted return row;
+  // total = what the student actually pays (fee + GST)
+  return rows.map((r) => ({ ...r, total: priceBreakdown(Number(r.amount), 0).final }));
 }
 
 async function listPayments(studentId) {
   const { rows } = await db.query(
-    `SELECT p.id, f.description AS fee, p.amount, p.method, p.reference, p.paid_at
+    `SELECT p.id, f.description AS fee, p.amount, p.method, p.reference, p.paid_at, 'paid' AS status
      FROM payments p JOIN fees f ON f.id = p.fee_id
      WHERE f.student_id = $1
-     ORDER BY p.paid_at DESC`,
+     UNION ALL
+     SELECT a.id, f.description, a.amount, 'online', a.session_id, a.created_at, 'failed'
+     FROM payment_attempts a JOIN fees f ON f.id = a.fee_id
+     WHERE f.student_id = $1 AND a.status = 'failed'
+     ORDER BY paid_at DESC`,
     [studentId]
   );
   return rows;
 }
+/*
+Added: 
+UNION ALL
+     SELECT a.id, f.description, a.amount, 'online', a.session_id, a.created_at, 'failed'
+     FROM payment_attempts a JOIN fees f ON f.id = a.fee_id
+     WHERE f.student_id = $1 AND a.status = 'failed'
+*/
 
 async function getPayment(studentId, paymentId) {
   const { rows } = await db.query(
@@ -88,7 +101,7 @@ async function createAttempt(studentId, feeId) {
 // The attempt, only if it belongs to this student
 async function getAttempt(studentId, sessionId) {
   const { rows } = await db.query(
-    `SELECT a.session_id, a.amount, a.status, a.failure_reason, f.description AS fee,
+    `SELECT a.session_id, a.fee_id, a.amount, a.status, a.failure_reason, f.description AS fee,
             f.amount AS subtotal, (a.amount - f.amount) AS gst,
             u.name AS student_name, u.email AS student_email
      FROM payment_attempts a

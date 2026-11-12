@@ -31,8 +31,8 @@
       const errorBox = document.getElementById('pay-error');
       errorBox.textContent = '';
       try {
-        const payment = await api.post(`/student/fees/${feeId}/pay`);
-        location.href = '/student/payment-success.html?id=' + payment.id;
+        const res = await api.post(`/student/fees/${feeId}/pay`);
+        location.href = res.checkout_url; 
       } catch (err) {
         errorBox.textContent = err.message;
       }
