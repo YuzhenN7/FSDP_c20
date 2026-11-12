@@ -1,12 +1,6 @@
 const db = require('../config/db');
 
 // session + student approved / pending
-// const sessionSelect = 'SELECT s.*, c.name AS centre_name, ' +
-  "COUNT(a.id) FILTER (WHERE a.status = 'approved')::int AS approved_count, " +
-  "COUNT(a.id) FILTER (WHERE a.status = 'pending')::int AS pending_count " +
-  'FROM grading_sessions s ' +
-  'JOIN centres c ON c.id = s.centre_id ' +
-  'LEFT JOIN grading_applications a ON a.session_id = s.id ';//
 
 // CREATE a session - PBI-10
 async function createSession(d) {
@@ -22,8 +16,11 @@ async function createSession(d) {
 // GET all sessions - PBI-10
 async function listSessions() {
   const { rows } = await db.query(
-    SESSION_SELECT + 'GROUP BY s.id, c.name ORDER BY s.session_date, s.session_time'
+    'SELECT s.*, c.name AS centre_name ' +
+    'FROM grading_sessions s JOIN centres c ON c.id = s.centre_id ' +
+    'ORDER BY s.session_date, s.session_time'
   );
   return rows;
 }
 
+module.exports = { createSession, listSessions };
