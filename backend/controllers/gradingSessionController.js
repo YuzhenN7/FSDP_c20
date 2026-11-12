@@ -1,9 +1,11 @@
 const model = require('../models/gradingSessionModel');
 
 const TYPES = ['mass_adult', 'mass_children', 'private'];
+const MIN_MONTHS_BETWEEN_GRADINGS = 3;
+const ADULT_MIN_AGE = 18; 
 
-function httpError(status, message) {
-  return Object.assign(new Error(message), { status: status });
+function httpError(status, message, reasons) {
+  return Object.assign(new Error(message), { status: status, reasons: reasons });
 }
 
 function handle(fn) {
@@ -12,10 +14,16 @@ function handle(fn) {
       await fn(req, res);
     } catch (e) {
       if (e.code === '23503') return res.status(400).json({ error: 'That centre does not exist.' });
-      if (e.status) return res.status(e.status).json({ error: e.message });
+      if (e.status) return res.status(e.status).json({ error: e.message, reasons: e.reasons });
       throw e;
     }
   };
+}
+
+function parseId(value) {
+  const id = Number(value);
+  if (!Number.isInteger(id) || id < 1) throw httpError(400, 'Invalid id.');
+  return id;
 }
 
 // POST /api/grading-sessions
@@ -29,7 +37,6 @@ const createSession = handle(async (req, res) => {
   if (!TYPES.includes(b.type)) throw httpError(400, 'Type must be mass_adult, mass_children or private.');
   if (isNaN(Number(b.fee)) || Number(b.fee) < 0) throw httpError(400, 'Fee must be 0 or more.');
 
-  // application window must make sense and close before the session starts
   const open = new Date(b.apply_open);
   const close = new Date(b.apply_close);
   if (isNaN(open) || isNaN(close) || open >= close) throw httpError(400, 'The application window is invalid.');
@@ -55,4 +62,88 @@ const listSessions = handle(async (req, res) => {
   res.json(await model.listSessions());
 });
 
-module.exports = { createSession, listSessions };
+
+function inWindow(session) {
+  const now = new Date();
+  return now >= new Date(session.apply_open) && now <= new Date(session.apply_close);
+}
+
+// 'YYYY-MM-DD'
+function ageOn(dob, day) {
+  const b = new Date(dob + 'T00:00:00');
+  const d = new Date(day + 'T00:00:00');
+  let age = d.getFullYear() - b.getFullYear();
+  const m = d.getMonth() - b.getMonth();
+  if (m < 0 || (m === 0 && d.getDate() < b.getDate())) age--;
+  return age;
+}
+
+// Eligibility rules
+function checkEligibility(st, session) {
+  const reasons = [];
+
+  // Needs a current belt, and a higher belt to grade for
+  if (!st.belt_id) reasons.push('No current belt is recorded for you.');
+  else if (!st.next_belt_id) reasons.push('You are already at the highest belt.');
+
+  // Adult mass sessions need age 18+, children mass sessions need under 18 (private is open to all)
+  if (session.type === 'mass_adult' || session.type === 'mass_children') {
+    if (!st.date_of_birth) {
+      reasons.push('Your date of birth is not recorded. Please contact your dojo admin.');
+    } else {
+      const age = ageOn(st.date_of_birth, session.session_day);
+      if (session.type === 'mass_adult' && age < ADULT_MIN_AGE) reasons.push('This session is for adults (18 and above) only.');
+      if (session.type === 'mass_children' && age >= ADULT_MIN_AGE) reasons.push('This session is for children (under 18) only.');
+    }
+  }
+  
+  // Membership must be active, no overdue fees
+  if (st.has_overdue_fee) reasons.push('You have an overdue fee. Please pay it before applying.');
+
+  // 3 months since the last passed grading/since joining
+  const since = st.last_pass || st.joined_on;
+  const earliest = new Date(since + 'T00:00:00');
+  earliest.setMonth(earliest.getMonth() + MIN_MONTHS_BETWEEN_GRADINGS);
+  if (earliest > new Date(session.session_day + 'T00:00:00')) {
+    reasons.push('You need at least ' + MIN_MONTHS_BETWEEN_GRADINGS + ' months since your last grading or joining.');
+  }
+
+  return { eligible: reasons.length === 0, reasons: reasons };
+}
+
+// GET /api/grading-sessions/:id/eligibility 
+const checkEligibilityRoute = handle(async (req, res) => {
+  const session = await model.getSession(parseId(req.params.id));
+  if (!session) throw httpError(404, 'Session not found.');
+  const st = await model.getEligibilityData(req.student.id);
+  res.json({ window_open: inWindow(session), ...checkEligibility(st, session) });
+});
+
+// POST /api/grading-sessions/:id/apply
+const apply = handle(async (req, res) => {
+  const session = await model.getSession(parseId(req.params.id));
+  if (!session) throw httpError(404, 'Session not found.');
+
+  if (!inWindow(session)) throw httpError(400, 'Applications are not open for this session.');
+
+  const st = await model.getEligibilityData(req.student.id);
+  const result = checkEligibility(st, session);
+  if (!result.eligible) throw httpError(422, 'You are not eligible for this grading.', result.reasons);
+
+  try {
+    const application = await model.createApplication(
+      session.id, req.student.id, st.belt_id, st.has_overdue_fee ? 'lapsed' : 'active'
+    );
+    res.status(201).json(application); 
+  } catch (e) {
+    if (e.code === '23505') throw httpError(409, 'You have already applied to this session.');
+    throw e;
+  }
+});
+
+// GET /api/grading-sessions/mine
+const myApplications = handle(async (req, res) => {
+  res.json(await model.listByStudent(req.student.id));
+});
+
+module.exports = { createSession, listSessions, checkEligibility: checkEligibilityRoute, apply, myApplications };

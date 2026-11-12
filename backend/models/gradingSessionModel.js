@@ -35,7 +35,7 @@ async function getSession(id) {
 // GET students eligibility data - PBI-14
 async function getEligibilityData(studentId) {
   const { rows } = await db.query(
-    'SELECT s.id, s.belt_id, s.joined_on::text AS joined_on, ' +
+    'SELECT s.id, s.belt_id, s.date_of_birth::text AS date_of_birth, s.joined_on::text AS joined_on, ' +
     "(SELECT MAX(g.graded_on)::text FROM gradings g WHERE g.student_id = s.id AND g.result = 'pass') AS last_pass, " +
     "EXISTS (SELECT 1 FROM fees f WHERE f.student_id = s.id AND f.status = 'unpaid' AND f.due_date < CURRENT_DATE) AS has_overdue_fee, " +
     '(SELECT nb.id FROM belt_levels nb WHERE nb.sort_order = b.sort_order + 1) AS next_belt_id ' +

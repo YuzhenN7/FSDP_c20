@@ -122,3 +122,5 @@ CREATE TABLE IF NOT EXISTS attendance (
   status     TEXT NOT NULL CHECK (status IN ('present', 'absent')),
   UNIQUE (class_id, student_id, class_date)
 );
+
+ALTER TABLE students ADD COLUMN IF NOT EXISTS date_of_birth DATE;
