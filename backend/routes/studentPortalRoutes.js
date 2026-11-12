@@ -12,7 +12,7 @@ router.get('/fees', portal.listFees);                // this student's fees
 router.get('/payments', portal.listPayments);        // payment history
 router.get('/payments/:id', portal.getPayment);      // one payment (success page / receipt)
 router.post('/fees/:id/pay', portal.payFee);         // TODO: online payment
-router.get('/checkout/:session', ctrl.getCheckout);
-router.post('/checkout/:session/result', ctrl.settleCheckout);
+router.get('/checkout/:session', portal.getCheckout);
+router.post('/checkout/:session/result', portal.settleCheckout);
 
 module.exports = router;

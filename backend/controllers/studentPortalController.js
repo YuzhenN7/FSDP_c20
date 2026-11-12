@@ -40,13 +40,20 @@ async function getPayment(req, res) {
 //   so the page can open payment-success.html?id=<payment id>
 
 // POST /api/student/fees/:id/pay -> starts a payment and returns the gateway page address
+/*async function payFee(req, res) {
+  const r = await studentPortalModel.createAttempt(req.student.id, req.params.id);
+  if (r.error) return res.status(r.code).json({ error: r.error });
+  res.status(201).json({ session_id: r.sessionId, checkout_url: `/student/checkout.html?session=${r.sessionId}` });
+}*/
+
+// POST /api/student/fees/:id/pay -> starts a payment and returns the gateway page address
 async function payFee(req, res) {
   const r = await studentPortalModel.createAttempt(req.student.id, req.params.id);
   if (r.error) return res.status(r.code).json({ error: r.error });
   res.status(201).json({ session_id: r.sessionId, checkout_url: `/student/checkout.html?session=${r.sessionId}` });
 }
 
-// GET /api/student/checkout/:session -> what the gateway page shows
+// GET /api/student/checkout/:session -> what the checkout page shows
 async function getCheckout(req, res) {
   const attempt = await studentPortalModel.getAttempt(req.student.id, req.params.session);
   if (!attempt) return res.status(404).json({ error: 'Payment session not found.' });
@@ -56,19 +63,14 @@ async function getCheckout(req, res) {
 // POST /api/student/checkout/:session/result  { outcome: 'success' | 'fail' }
 async function settleCheckout(req, res) {
   const { outcome } = req.body;
-  if (!['success', 'fail'].includes(outcome)) return res.status(400).json({ error: 'Invalid outcome.' });
+  if (!['success', 'fail', 'cancel'].includes(outcome)) return res.status(400).json({ error: 'Invalid outcome.' });
   const existing = await studentPortalModel.getAttempt(req.student.id, req.params.session);
   if (!existing) return res.status(404).json({ error: 'Payment session not found.' });
   const r = await studentPortalModel.settleAttempt(
-    req.student.id, req.params.session, outcome, 'Card declined by the bank (simulated)'
+    req.student.id, req.params.session, outcome === 'success' ? 'success' : 'fail', reason
   );
   res.json({ status: r.attempt.status, payment_id: r.paymentId, failure_reason: r.attempt.failure_reason });
 }
-
-async function payFee(req, res) {
-  res.status(501).json({ error: 'Online payment is not built yet.' });
-}
-
 module.exports = { 
   loadStudent, 
   getBelt, listFees, 

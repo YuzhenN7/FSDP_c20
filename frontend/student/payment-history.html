@@ -30,11 +30,15 @@
   <script>
     (async () => {
       try {
-        const payments = await api.get('/student/payments');
+        const [payments, fees] = await Promise.all([
+          api.get('/student/payments'),
+          api.get('/student/fees'),
+        ]);
 
-        const due = payments
-        .filter((p) => p.status === 'pending')
-        .reduce((sum, p) => sum + Number(p.amount), 0);
+        // outstanding balance = every fee still unpaid (including GST)
+        const due = fees
+          .filter((f) => f.status === 'unpaid')
+          .reduce((sum, f) => sum + Number(f.total ?? f.amount), 0);
         document.getElementById('outstanding').textContent = formatMoney(due);
 
         renderTable('#list', [
@@ -45,7 +49,9 @@
           { label: 'Amount', render: (p) =>
             `<span style="${p.status === 'failed' ? 'color:#4A5568' : ''}">${esc(formatMoney(p.amount))}</span>` },
           //{ label: 'Reference', key: 'reference' },
-          { label: '', render: (p) => `<a href="/student/payment-success.html?id=${esc(p.id)}">View receipt</a>` },
+          { label: '', render: (p) => (p.status === 'paid'
+              ? `<a href="/student/payment-success.html?id=${esc(p.id)}">View receipt</a>`
+              : '') },
         ], payments);
       } catch (err) {
         showError('#list', err);

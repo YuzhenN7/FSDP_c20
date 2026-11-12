@@ -4,10 +4,12 @@
   const session = new URLSearchParams(location.search).get('session');
   const box = document.getElementById('checkout');
   const money = (n) => formatMoney(Number(n));
+  let attempt = null;
 
   async function show() {
     try {
       const a = await api.get(`/student/checkout/${session}`);
+      attempt = a;
       if (a.status === 'paid') return done('This payment is already complete.');
       if (a.status === 'failed') return failed(a.failure_reason);
 
@@ -32,10 +34,12 @@
           </div>
           <p class="error" id="err"></p>
           <button class="btn co-pay" id="payBtn" type="button">Pay ${esc(money(a.amount))}</button>
-          <button class="linkbtn co-test" id="failBtn" type="button">Simulate declined card (testing only)</button>
+          <button class="linkbtn co-test" id="cancelBtn" type="button">Cancel payment</button>
         </div>`;
+        // <button class="linkbtn co-test" id="failBtn" type="button">Simulate declined card (testing only)</button>
       document.getElementById('payBtn').onclick = () => send('success');
-      document.getElementById('failBtn').onclick = () => send('fail');
+      document.getElementById('cancelBtn').onclick = () => send('cancel');
+      //document.getElementById('failBtn').onclick = () => send('fail');
     } catch (err) {
       box.className = 'card';
       box.innerHTML = `<p class="error">${esc(err.message)}</p><a href="/student/fees.html">Back to my fees</a>`;
@@ -54,18 +58,42 @@
     }
   }
 
+  async function retry() {
+    document.querySelectorAll('#checkout button').forEach((b) => { b.disabled = true; });
+    try {
+      const r = await api.post(`/student/fees/${attempt.fee_id}/pay`);
+      location.href = r.checkout_url;
+    } catch (err) {
+      document.getElementById('retryErr').textContent = err.message;
+      document.querySelectorAll('#checkout button').forEach((b) => { b.disabled = false; });
+    }
+  }
+
   function done(msg) {
     box.className = 'card';
     box.innerHTML = `<p>${esc(msg)}</p><a class="btn" href="/student/fees.html">Back to my fees</a>`;
   }
 
   function failed(reason) {
-    box.className = 'card';
+    const cancelled = reason === 'Payment cancelled';
+    box.className = 'co-fail';
     box.innerHTML = `
-      <h2>Payment failed</h2>
-      <p class="error">${esc(reason || 'Payment declined')}</p>
-      <p class="muted">You have not been charged and the fee is still unpaid.</p>
-      <a class="btn" href="/student/fees.html">Back to my fees to try again</a>`;
+      <div class="fail-icon">&times;</div>
+      <h1 class="fail-title">${cancelled ? 'Payment Cancelled' : 'Payment Failure'}</h1>
+      <p class="fail-sub">${cancelled ? "You cancelled the payment and you haven't been charged." : "Your payment didn't go through and you haven't been charged."}<br>Your fee is still unpaid.</p>
+      <div class="fail-table">
+        <div class="kv"><span>Fee</span><strong>${esc(attempt.fee)}</strong></div>
+        <div class="kv"><span>Amount</span><strong>${esc(money(attempt.amount))}</strong></div>
+        <div class="kv"><span>Reason</span><strong>${esc(reason || 'Payment Declined')}</strong></div>
+        <div class="kv"><span>Status</span><span class="badge failed">Failed</span></div>
+      </div>
+      <p class="error" id="retryErr"></p>
+      <div class="fail-actions">
+        <button class="btn" id="retryBtn" type="button">Try again</button>
+        <a class="btn outline" href="/student/payment-history.html">View Payment History</a>
+        <a class="btn outline" href="/student/fees.html">Back to My fees</a>
+      </div>`;
+    document.getElementById('retryBtn').onclick = retry;
   }
 
   show();
