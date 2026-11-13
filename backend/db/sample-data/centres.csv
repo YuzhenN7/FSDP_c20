@@ -1,7 +1,21 @@
-name,address
-Thomson CC,"194 Upper Thomson Road, Singapore 574339"
-Chong Pang CC,
-Paya Lebar Kovan CC,
-Bukit Timah CC,
-Punggol 21 CC,
-West Coast CC,
+name,address,region,condition
+Thomson CC,"194 Upper Thomson Road, Singapore 574339",Central,Open
+Chong Pang CC,"109 Yishun Ring Rd, Singapore 760109",North,Open
+Paya Lebar Kovan CC,"207 Hougang Street 21, Singapore 530207",East,Open
+Bukit Timah CC,"20 Toh Yi Dr, Singapore 596569",Central,Open
+Punggol 21 CC,"80 Punggol Field, Singapore 828815",North,Open
+West Coast CC,"2 Clementi West Street 2, Singapore 129605",West,Open
+ASK Headquarters Dojo,"Thomson V One, 9 Sin Ming Road, #B1-02, Singapore 575630",Central,Open
+ActiveSG Bishan Dojo,"5 Bishan Street 14, Singapore 579783",Central,Open
+ActiveSG Woodlands Dojo,"2 Woodlands Street 12, Singapore 738599",North,Open
+Fu Chun Dojo,"Woodgrove Zone 10 RN, Blk 310 Link Hall (temporary location)",North,Under renovation
+Tanjong Pagar Dojo,"Tanjong Pagar Community Club, 101 Cantonment Rd, Singapore 089774",South,Open
+AGORA Colearning,"1 Maritime Square, HarbourFront Centre, #04-01, Singapore 099253",South,Open
+EtonHouse International School Sentosa,"33 Allanbrooke Rd, Singapore 099981",South,Open
+Alexandra Retail Centre Dojo,"460 Alexandra Road, #03-02, Singapore 119963",South,Open
+Our Tampines Hub,"1 Tampines Walk, Singapore 528523",East,Open
+Bedok Community Centre Dojo,"850 New Upper Changi Rd, Singapore 467352",East,Temporarily closed
+Marine Parade Dojo,"278 Marine Parade Rd, Singapore 449282",East,Under renovation
+The Frontier Dojo,"665A Jurong West Street 65, Singapore 641665",West,Open
+ActiveSG Jurong East,"21 Jurong East Street 31, Singapore 609517",West,Open
+Gek Poh Dojo,"Gek Poh Ville Community Club, 1 Jurong West Street 74, Singapore 649149",West,Under renovation

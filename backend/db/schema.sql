@@ -16,8 +16,15 @@ CREATE TABLE IF NOT EXISTS centres (
   id         SERIAL PRIMARY KEY,
   name       TEXT NOT NULL,
   address    TEXT,
+  region     TEXT,                                   -- Central / North / South / East / West
+  condition  TEXT NOT NULL DEFAULT 'Open'
+             CHECK (condition IN ('Open', 'Under renovation', 'Temporarily closed')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- For databases created before region / condition existed (does nothing if they are already there)
+ALTER TABLE centres ADD COLUMN IF NOT EXISTS region TEXT;
+ALTER TABLE centres ADD COLUMN IF NOT EXISTS condition TEXT NOT NULL DEFAULT 'Open'
+  CHECK (condition IN ('Open', 'Under renovation', 'Temporarily closed'));
 
 CREATE TABLE IF NOT EXISTS venues (
   id        SERIAL PRIMARY KEY,

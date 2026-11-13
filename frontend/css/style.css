@@ -45,6 +45,10 @@
 }
 .event b { display: block; margin: 2px 0; }
 .event:hover { filter: brightness(0.96); }
+/* SCRUM-18: a class with no instructor or no venue */
+.badge.incomplete { background: var(--amber-bg); color: var(--amber); }
+.event .badge.incomplete { display: block; width: fit-content; margin-top: 6px; }
+.incomplete-note { margin: 0 0 14px; }
 .legend { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 14px; }
 .chip { display: inline-block; padding: 3px 8px; border-radius: 5px; font-size: 13px; background: #eef0f2; }
 

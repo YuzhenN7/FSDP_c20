@@ -2,8 +2,10 @@
 // Used by frontend/admin/classes.html. Needs api.js, ui.js and layout.js loaded first.
 //
 // READS come from the API:  /centres, /classes, /classes/venues, /classes/instructors
-// SAVES are kept on this page only for now (the backend has no create/edit routes yet).
-// Each place that should save is marked with "TODO (backend)".
+// SAVED to the database:    assigning an instructor and venue to an existing class (SCRUM-18)
+//                           PUT /classes/:id/assign  - the server refuses a double-booking and names the clash
+// Still kept on this page only (the backend has no routes for them yet): new classes, venues, availability.
+// Each of those is marked with "TODO (backend)".
 
 (function () {
   const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -18,7 +20,7 @@
 
   // ---------- Data from the API ----------
   let centres = [];       // [{ id, name, address }]
-  let classes = [];       // [{ id, name, centre, venue, instructor, day_of_week, start_time, end_time }]  + category (page only)
+  let classes = [];       // [{ id, name, centre_id, centre, venue_id, venue, instructor_id, instructor, day_of_week, start_time, end_time }]  + category (page only)
   let venues = [];        // [{ id, name, centre_id, centre }]
   let instructors = [];   // [{ id, name, email, centre_id, centre }]  + availability (page only)
 
@@ -41,6 +43,8 @@
   const shortDay = (day) => (day || '?').slice(0, 3);
   const catClass = (category) => (category ? 'cat-' + esc(category.toLowerCase()) : '');
   const chip = (category) => `<span class="chip ${catClass(category)}">${esc(category)}</span>`;
+  // SCRUM-18: what a class still needs before it is complete, e.g. ['instructor', 'venue']. Empty = complete.
+  const missing = (c) => [c.instructor ? null : 'instructor', c.venue ? null : 'venue'].filter(Boolean);
   const head = (title, action = '') => `<div class="panel-head"><h2>${esc(title)}</h2>${action}</div>`;
 
   // <option> tags for a dropdown. If emptyLabel is given, it becomes the first choice (value "").
@@ -49,8 +53,23 @@
     return first + values.map((v) => `<option${v === selected ? ' selected' : ''}>${esc(v)}</option>`).join('');
   }
 
+  // <option> tags whose value is the item's id (so the form sends ids to the server)
+  function idOptions(items, selectedId, label = (item) => item.name) {
+    return items.map((item) =>
+      `<option value="${esc(item.id ?? '')}"${item.id === selectedId ? ' selected' : ''}>${esc(label(item))}</option>`).join('');
+  }
+
   // ---------- Tab 1: weekly timetable ----------
   function timetableView() {
+    // SCRUM-18: how many classes still have no instructor or no venue
+    const incompleteHere = classesHere().filter((c) => missing(c).length > 0).length;
+    const incompleteAll = classes.filter((c) => missing(c).length > 0).length;
+    const warning = incompleteAll === 0 ? '' : `
+      <p class="incomplete-note">
+        <span class="badge incomplete">Incomplete</span>
+        ${incompleteHere} at this centre, ${incompleteAll} across all centres still need an instructor or a venue.
+      </p>`;
+
     const columns = DAYS.map((day) => {
       const events = classesHere()
         .filter((c) => c.day_of_week === day)
@@ -60,6 +79,7 @@
             ${esc(c.category || '')}
             <b>${esc(formatTime(c.start_time))} · ${esc(c.name)}</b>
             ${esc(c.venue || 'No venue yet')}<br>${esc(c.instructor || 'No instructor yet')}
+            ${missing(c).length ? `<span class="badge incomplete">Incomplete: no ${esc(missing(c).join(' or '))}</span>` : ''}
           </button>`)
         .join('');
       return `<div class="day"><strong>${shortDay(day)}</strong>${events}</div>`;
@@ -67,6 +87,7 @@
 
     return head('Weekly timetable', '<button class="btn" type="button" data-action="create">+ Create term schedule</button>') + `
       <p class="muted">Recurring weekly classes. Click a class to assign its instructor and venue.</p>
+      ${warning}
       <p class="legend">${CATEGORIES.map(chip).join('')}</p>
       <div class="scroll-x"><div class="timetable">${columns}</div></div>`;
   }
@@ -79,12 +100,16 @@
     }
     if (!names.includes(chosenInstructor)) chosenInstructor = names[0];
 
-    const rows = classesHere()
+    // SCRUM-18: every class this instructor teaches, at ANY centre (a clash can be between two centres)
+    const rows = classes
       .filter((c) => c.instructor === chosenInstructor)
+      .sort((a, b) => DAYS.indexOf(a.day_of_week) - DAYS.indexOf(b.day_of_week) ||
+        String(a.start_time).localeCompare(String(b.start_time)))
       .map((c) => `
         <div class="list-row">
           <strong>${esc(c.name)}</strong>
           <span>${esc(shortDay(c.day_of_week))} · ${esc(formatTime(c.start_time))} - ${esc(formatTime(c.end_time))}</span>
+          <span>${esc(c.centre)}</span>
           <span>${esc(c.venue || 'No venue yet')}</span>
         </div>`)
       .join('');
@@ -94,7 +119,8 @@
         <label for="pick-instructor">Instructor</label>
         <select id="pick-instructor">${options(names, chosenInstructor)}</select>
       </div>
-      ${rows || '<p class="muted">No classes assigned to this instructor at this centre.</p>'}`;
+      <p class="muted">This instructor's weekly schedule across all centres.</p>
+      ${rows || '<p class="muted">No classes assigned to this instructor yet.</p>'}`;
   }
 
   // ---------- Tab 3: instructor availability ----------
@@ -149,6 +175,14 @@
 
   // ---------- Form: assign instructor and venue (step 2, or after clicking a class) ----------
   function assignView() {
+    // Instructors based at this centre first, then everyone else (an instructor can teach at another centre)
+    const local = instructors.filter((i) => i.centre_id === centre.id);
+    const others = instructors.filter((i) => i.centre_id !== centre.id);
+    const instructorOptions = '<option value="">Not assigned</option>' +
+      (local.length ? `<optgroup label="Based at ${esc(centre.name)}">${idOptions(local, draft.instructor_id)}</optgroup>` : '') +
+      (others.length ? `<optgroup label="Other centres">${idOptions(others, draft.instructor_id, (i) => `${i.name} (${i.centre || 'no centre'})`)}</optgroup>` : '');
+    const venueOptions = '<option value="">Not assigned</option>' + idOptions(venuesHere(), draft.venue_id);
+
     return head('Assign instructor and venue') + `
       <p>
         ${esc(draft.name)} · ${draft.category ? chip(draft.category) + ' · ' : ''}
@@ -156,11 +190,13 @@
       </p>
       <form class="form-narrow" id="assign-form">
         <label for="a-instructor">Instructor</label>
-        <select id="a-instructor">${options(instructors.map((i) => i.name), draft.instructor, 'Not assigned')}</select>
+        <select id="a-instructor">${instructorOptions}</select>
 
         <label for="a-venue">Training venue</label>
-        <select id="a-venue">${options(venuesHere().map((v) => v.name), draft.venue, 'Not assigned')}</select>
+        <select id="a-venue">${venueOptions}</select>
+        ${venuesHere().length ? '' : '<p class="muted">This centre has no venues yet. Add one on the Training venues tab.</p>'}
 
+        <p class="error" id="form-error"></p>
         <div class="form-actions">
           <button class="btn" type="submit">Save to timetable</button>
           <button class="btn outline" type="button" data-action="cancel">Cancel</button>
@@ -255,7 +291,7 @@
   });
 
   // ---------- Form submits ----------
-  $('panel').addEventListener('submit', (event) => {
+  $('panel').addEventListener('submit', async (event) => {
     event.preventDefault();
     const formId = event.target.id;
 
@@ -268,20 +304,41 @@
       }
       draftIndex = -1;
       draft = {
-        id: null, name: $('c-name').value.trim(), centre: centre.name, category: $('c-category').value,
-        day_of_week: $('c-day').value, start_time: start, end_time: end, venue: null, instructor: null,
+        id: null, name: $('c-name').value.trim(), centre_id: centre.id, centre: centre.name, category: $('c-category').value,
+        day_of_week: $('c-day').value, start_time: start, end_time: end,
+        venue_id: null, venue: null, instructor_id: null, instructor: null,
       };
       view = 'assign';
     }
 
     if (formId === 'assign-form') {
-      draft.instructor = $('a-instructor').value || null;
-      draft.venue = $('a-venue').value || null;
-      if (draftIndex < 0) classes.push(draft);
-      else classes[draftIndex] = draft;
-      // TODO (backend): save it, e.g.
-      //   new class:      await api.post('/classes', draft);
-      //   existing class: await api.put('/classes/' + draft.id, draft);
+      const instructorId = Number($('a-instructor').value) || null;
+      const venueId = Number($('a-venue').value) || null;
+
+      if (draft.id) {
+        // SCRUM-18: an existing class - save to the database. The server checks for clashes.
+        const button = event.target.querySelector('button[type="submit"]');
+        button.disabled = true;
+        try {
+          const saved = await api.put(`/classes/${draft.id}/assign`, { instructor_id: instructorId, venue_id: venueId });
+          classes[draftIndex] = { ...saved, category: draft.category };   // category is page-only, keep it
+        } catch (err) {
+          // e.g. "Clash: Sensei X is already teaching "Aikido" at Bukit Timah CC (Saturday 16:00 - 17:00)."
+          $('form-error').textContent = err.message;
+          button.disabled = false;
+          return;
+        }
+      } else {
+        // A class created on this page is not in the database yet, so it stays on the page only.
+        // TODO (backend): once POST /classes exists:  await api.post('/classes', draft);
+        const instructor = instructors.find((i) => i.id === instructorId);
+        const venue = venues.find((v) => v.id === venueId);
+        draft.instructor_id = instructorId;
+        draft.instructor = instructor ? instructor.name : null;
+        draft.venue_id = venueId;
+        draft.venue = venue ? venue.name : null;
+        classes.push(draft);
+      }
       view = 'timetable';
       tab = 'timetable';
     }
