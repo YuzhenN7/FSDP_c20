@@ -1,95 +1,249 @@
-/* SCRUM-6: admin-only student records UI; all API operations validate server-side. */
+/* SCRUM-6: admin-only student records UI; all API operations validate server-side.
+   - Search + filters: the server filters the list (GET /members?search=&centre_id=&status=)
+   - Add / edit: one form inside a popup (<dialog id="member-dialog">)
+   - Profile: click a name. The address bar decides what shows:
+       members.html = the list,  members.html#student-5 = the profile of student 5 */
 (() => {
-  const form = document.querySelector('#member-form');
-  const message = document.querySelector('#form-message');
-  const table = document.querySelector('#members-table');
-  let all = [], editingId = null;
-  const show = (text, error = false) => { message.hidden = false; message.textContent = text; message.classList.toggle('error', error); };
-  const hide = () => { message.hidden = true; message.textContent = ''; };
-  const val = (name) => form.elements.namedItem(name).value;
-  async function init() {
-    try {
-      const opt = await api.get('/members/options');
-      for (const [name, data, placeholder] of [
-        ['centre_id', opt.centres, 'Select dojo'], ['belt_id', opt.belts, 'Select current belt']]) {
-        form.elements.namedItem(name).innerHTML = `<option value="">${placeholder}</option>` +
-          data.map((r) => `<option value="${Number(r.id)}">${esc(r.name)}</option>`).join('');
-        if (name === 'centre_id') document.querySelector('#filter-dojo').innerHTML = '<option value="">All dojos</option>' +
-          data.map((r) => `<option value="${Number(r.id)}">${esc(r.name)}</option>`).join('');
-      }
-      form.elements.namedItem('joined_on').value = new Date().toISOString().slice(0,10);
-      await load();
-    } catch (err) { show(err.message, true); table.textContent = err.message; }
+  const $ = (selector) => document.querySelector(selector);
+  const form = $('#member-form');
+  const dialog = $('#member-dialog');
+  const pageMessage = $('#form-message');
+  const formError = $('#modal-message');
+  const table = $('#members-table');
+  const listPanel = $('#list-panel');
+  const profile = $('#profile');
+  const field = (name) => form.elements.namedItem(name);
+
+  let shown = [];        // students matching the search + filters (what the table shows)
+  let everyone = [];     // every student, ignoring the filters (used by the profile)
+  let editingId = null;  // id of the student in the popup form, or null when adding
+
+  // Today's date as YYYY-MM-DD, in the computer's own timezone
+  const today = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+  // ---------- Messages ----------
+  function showMessage(text, isError = false) {
+    pageMessage.hidden = false;
+    pageMessage.textContent = text;
+    pageMessage.classList.toggle('error', isError);
   }
-  function resetForm() {
-    editingId = null; form.reset();
-    form.elements.namedItem('joined_on').value = new Date().toISOString().slice(0,10);
-    const pass = form.elements.namedItem('password'); pass.required = true; pass.disabled = false;
-    document.querySelector('#password-row').hidden = false;
-    document.querySelector('#form-heading').textContent = 'Add a student';
-    document.querySelector('#save-student').textContent = 'Create student';
-    document.querySelector('#cancel-edit').hidden = true;
-  }
+  function hideMessage() { pageMessage.hidden = true; pageMessage.textContent = ''; }
+  function showFormError(text) { formError.hidden = false; formError.textContent = text; }
+  function hideFormError() { formError.hidden = true; formError.textContent = ''; }
+
+  const pill = (status) => `<span class="s1-pill ${esc(status)}">${esc(status)}</span>`;
+
+  // ---------- Load the list (search + filters are applied by the server) ----------
   async function load() {
-    const params = new URLSearchParams({
-      search: document.querySelector('#search').value.trim(),
-      centre_id: document.querySelector('#filter-dojo').value,
-      status: document.querySelector('#filter-status').value,
-    });
-    all = await api.get('/members?' + params.toString());
-    if (!all.length) { table.innerHTML = '<p class="empty">No matching students.</p>'; return; }
+    const filters = {
+      search: $('#search').value.trim(),
+      centre_id: $('#filter-dojo').value,
+      status: $('#filter-status').value,
+    };
+    const isFiltered = Boolean(filters.search || filters.centre_id || filters.status);
+    const [matches, all] = await Promise.all([
+      api.get('/members?' + new URLSearchParams(filters).toString()),
+      isFiltered ? api.get('/members') : null,
+    ]);
+    shown = matches;
+    everyone = all || matches;
+    drawTable();
+    route();
+  }
+  const reload = () => load().catch((err) => showMessage(err.message, true));
+
+  function drawTable() {
+    if (!shown.length) { table.innerHTML = '<p class="empty">No matching students.</p>'; return; }
     table.innerHTML = `<table><thead><tr><th>Name</th><th>Email</th><th>Principal dojo</th><th>Belt</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead><tbody>` +
-      all.map((s) => `<tr><td>${esc(s.name)}</td><td>${esc(s.email)}</td><td>${esc(s.centre || 'Not assigned')}</td>
-        <td>${esc(s.belt || 'Not assigned')}</td><td><span class="s1-pill ${esc(s.membership_status)}">${esc(s.membership_status)}</span></td>
+      shown.map((s) => `<tr>
+        <td><a class="s1-name-link" href="#student-${Number(s.id)}">${esc(s.name)}</a></td>
+        <td>${esc(s.email)}</td>
+        <td>${esc(s.centre || 'Not assigned')}</td>
+        <td>${esc(s.belt || 'Not assigned')}</td>
+        <td>${pill(s.membership_status)}</td>
         <td>${esc(formatDate(s.joined_on))}</td>
         <td><div class="s1-inline-buttons"><button class="btn small outline" type="button" data-edit="${Number(s.id)}">Edit</button>
-        ${s.membership_status !== 'inactive' ? `<button class="btn small outline" type="button" data-deactivate="${Number(s.id)}">Deactivate</button>` : ''}</div></td></tr>`).join('') +
+        ${s.membership_status !== 'inactive' ? `<button class="btn small outline" type="button" data-deactivate="${Number(s.id)}">Deactivate</button>` : ''}</div></td>
+      </tr>`).join('') +
       '</tbody></table>';
   }
-  function edit(id) {
-    const s = all.find((record) => Number(record.id) === id);
-    if (!s) return;
-    editingId = id;
-    for (const name of ['name','email','centre_id','belt_id','membership_status','joined_on']) {
-      form.elements.namedItem(name).value = s[name] == null ? '' : String(s[name]).slice(0, name === 'joined_on' ? 10 : undefined);
+
+  // ---------- One student's profile ----------
+  async function showProfile(s) {
+    listPanel.hidden = true;
+    profile.hidden = false;
+    profile.innerHTML = `
+      <a class="s1-back" href="#">‹ All students</a>
+      <div class="s1-profile-head">
+        <h2>${esc(s.name)} ${pill(s.membership_status)}</h2>
+        <button class="btn small outline" type="button" data-edit="${Number(s.id)}">Edit</button>
+      </div>
+      <p class="s1-lead">${esc(s.email)} · ${esc(s.centre || 'No dojo assigned')} · Joined ${esc(formatDate(s.joined_on))}</p>
+      <div id="profile-cards">Loading records…</div>`;
+
+    let gradings, fees, attendance;
+    try {
+      [gradings, fees, attendance] = await Promise.all([
+        api.get('/gradings'), api.get('/fees'), api.get('/attendance'),
+      ]);
+    } catch (err) {
+      $('#profile-cards').textContent = err.message;
+      return;
     }
-    form.elements.namedItem('password').required = false;
-    form.elements.namedItem('password').disabled = true;
-    document.querySelector('#password-row').hidden = true;
-    document.querySelector('#form-heading').textContent = 'Edit student';
-    document.querySelector('#save-student').textContent = 'Save changes';
-    document.querySelector('#cancel-edit').hidden = false;
-    hide(); form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // The admin may have clicked away while the records were loading
+    if (location.hash !== '#student-' + s.id) return;
+
+    // Those three lists only give the student's NAME, so two students with the same name
+    // cannot be told apart. Better to show nothing than someone else's records.
+    if (everyone.filter((other) => other.name === s.name).length > 1) {
+      $('#profile-cards').innerHTML = `<p class="s1-note">Records are hidden because more than one student is called
+        ${esc(s.name)}, and the grading, fee and attendance lists only identify students by name.</p>`;
+      return;
+    }
+
+    const mine = (list) => list.filter((row) => row.student === s.name);
+    gradings = mine(gradings);       // newest first
+    fees = mine(fees);
+    attendance = mine(attendance);
+
+    const last = gradings[0];
+    const unpaid = fees.filter((f) => f.status === 'unpaid');
+    const balance = unpaid.reduce((sum, f) => sum + Number(f.amount), 0);
+    const present = attendance.filter((a) => a.status === 'present').length;
+    const rate = attendance.length ? Math.round((present / attendance.length) * 100) + '%' : '-';
+
+    $('#profile-cards').innerHTML = `
+      <div class="s1-profile-cards">
+        <article>
+          <h3>Grading</h3>
+          <strong>${esc(s.belt || 'Not assigned')}</strong>
+          <p>Last grading · ${last ? esc(formatDate(last.graded_on)) : 'No record'}</p>
+          ${last ? `<p>${esc(last.belt)} · ${esc(last.result)}</p>` : ''}
+        </article>
+        <article>
+          <h3>Fees</h3>
+          <strong>${fees.length === 0 ? 'No fees' : unpaid.length ? 'Outstanding' : 'Paid'}</strong>
+          <p>Balance due · ${esc(formatMoney(balance))}</p>
+          <p>${fees.length - unpaid.length} of ${fees.length} fees paid</p>
+        </article>
+        <article>
+          <h3>Attendance</h3>
+          <strong>${attendance.length ? `${present} / ${attendance.length} classes` : 'No records'}</strong>
+          <p>Absent · ${attendance.length - present}</p>
+          <p>Attendance rate · ${rate}</p>
+        </article>
+      </div>`;
   }
-  table.addEventListener('click', async (event) => {
-    const editButton = event.target.closest('[data-edit]');
-    const deactivateButton = event.target.closest('[data-deactivate]');
-    if (editButton) edit(Number(editButton.dataset.edit));
-    if (deactivateButton) {
-      const id = Number(deactivateButton.dataset.deactivate);
-      const record = all.find((s) => Number(s.id) === id);
-      if (!record || !confirm(`Deactivate ${record.name}'s membership? Their student login will stop working.`)) return;
-      try { await api.request('PATCH', `/members/${id}/deactivate`, {}); show('Student membership deactivated.'); await load(); }
-      catch (err) { show(err.message, true); }
+
+  // Decide what to show from the address bar: the list, or one student's profile
+  function route() {
+    const match = location.hash.match(/^#student-(\d+)$/);
+    const student = match && everyone.find((s) => Number(s.id) === Number(match[1]));
+    if (student) {
+      showProfile(student);
+    } else {
+      profile.hidden = true;
+      listPanel.hidden = false;
     }
-  });
+  }
+  window.addEventListener('hashchange', () => { hideMessage(); route(); });
+
+  // ---------- The popup form (add or edit) ----------
+  function openForm(student = null) {
+    editingId = student ? Number(student.id) : null;
+    form.reset();
+    hideFormError();
+
+    // The password is only set when a student is created
+    const password = field('password');
+    password.required = !student;
+    password.disabled = Boolean(student);
+    $('#password-row').hidden = Boolean(student);
+
+    if (student) {
+      for (const name of ['name', 'email', 'centre_id', 'belt_id', 'membership_status', 'joined_on']) {
+        const value = student[name] == null ? '' : String(student[name]);
+        field(name).value = name === 'joined_on' ? value.slice(0, 10) : value;
+      }
+    } else {
+      field('joined_on').value = today();
+    }
+    $('#form-heading').textContent = student ? 'Edit student' : 'Add a student';
+    $('#save-student').textContent = student ? 'Save changes' : 'Create student';
+    dialog.showModal();
+  }
+
+  $('#add-student').addEventListener('click', () => { hideMessage(); openForm(); });
+  $('#close-form').addEventListener('click', () => dialog.close());
+  $('#cancel-edit').addEventListener('click', () => dialog.close());
+
   form.addEventListener('submit', async (event) => {
-    event.preventDefault(); hide();
+    event.preventDefault();
+    hideFormError();
     const payload = {
-      name: val('name').trim(), email: val('email').trim(), centre_id: Number(val('centre_id')),
-      belt_id: Number(val('belt_id')), joined_on: val('joined_on'), membership_status: val('membership_status'),
+      name: field('name').value.trim(), email: field('email').value.trim(),
+      centre_id: Number(field('centre_id').value), belt_id: Number(field('belt_id').value),
+      joined_on: field('joined_on').value, membership_status: field('membership_status').value,
     };
-    if (!editingId) payload.password = val('password');
+    if (!editingId) payload.password = field('password').value;
+
+    const saveButton = $('#save-student');
+    saveButton.disabled = true;
     try {
       await (editingId ? api.put(`/members/${editingId}`, payload) : api.post('/members', payload));
-      const note = editingId ? 'Student record updated.' : 'Student created successfully.';
-      resetForm(); show(note); await load();
-    } catch (err) { show(err.message, true); }
+      dialog.close();
+      showMessage(editingId ? 'Student record updated.' : 'Student created.');
+      await load();
+    } catch (err) {
+      showFormError(err.message);
+    } finally {
+      saveButton.disabled = false;
+    }
   });
-  document.querySelector('#cancel-edit').addEventListener('click', () => { resetForm(); hide(); });
-  document.querySelector('#search-button').addEventListener('click', () => load().catch((e) => show(e.message, true)));
-  document.querySelector('#search').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); load().catch((err) => show(err.message,true)); } });
-  document.querySelector('#filter-dojo').addEventListener('change', () => load().catch((e) => show(e.message, true)));
-  document.querySelector('#filter-status').addEventListener('change', () => load().catch((e) => show(e.message, true)));
-  init();
+
+  // ---------- Edit / Deactivate buttons (in the table and on the profile) ----------
+  async function onActionClick(event) {
+    const editButton = event.target.closest('[data-edit]');
+    const deactivateButton = event.target.closest('[data-deactivate]');
+
+    if (editButton) {
+      const student = everyone.find((s) => Number(s.id) === Number(editButton.dataset.edit));
+      if (student) { hideMessage(); openForm(student); }
+    }
+    if (deactivateButton) {
+      const id = Number(deactivateButton.dataset.deactivate);
+      const student = everyone.find((s) => Number(s.id) === id);
+      if (!student || !confirm(`Deactivate ${student.name}'s membership? Their student login will stop working.`)) return;
+      try {
+        await api.request('PATCH', `/members/${id}/deactivate`, {});
+        showMessage('Student membership deactivated.');
+        await load();
+      } catch (err) {
+        showMessage(err.message, true);
+      }
+    }
+  }
+  table.addEventListener('click', onActionClick);
+  profile.addEventListener('click', onActionClick);
+
+  // ---------- Search + filters ----------
+  $('#search-button').addEventListener('click', reload);
+  $('#search').addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); reload(); } });
+  $('#filter-dojo').addEventListener('change', reload);
+  $('#filter-status').addEventListener('change', reload);
+
+  // ---------- Start: fill the dropdowns, then load the list ----------
+  (async function init() {
+    try {
+      const options = await api.get('/members/options');
+      const optionTags = (rows) => rows.map((r) => `<option value="${Number(r.id)}">${esc(r.name)}</option>`).join('');
+      field('centre_id').innerHTML = '<option value="">Select dojo</option>' + optionTags(options.centres);
+      field('belt_id').innerHTML = '<option value="">Select current belt</option>' + optionTags(options.belts);
+      $('#filter-dojo').innerHTML = '<option value="">All dojos</option>' + optionTags(options.centres);
+      await load();
+    } catch (err) {
+      showMessage(err.message, true);
+      table.textContent = err.message;
+    }
+  })();
 })();
