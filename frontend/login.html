@@ -8,16 +8,25 @@
 <body class="s1-login-screen">
   <main class="s1-login-card">
     <section class="s1-login-left" aria-label="Welcome">
-      <div class="s1-brand">Aikido Shinjukai</div>
-      <div class="s1-accent-line" aria-hidden="true"></div>
-      <h1>Welcome back</h1>
-      <p class="s1-subtitle" id="role-description">Manage student records, training terms and class schedules in one place.</p>
-      <ul class="s1-benefits" id="benefits">
-        <li><span class="s1-num">1</span>Manage student records and belt details</li>
-        <li><span class="s1-num">2</span>Create terms and plan weekly classes</li>
-        <li><span class="s1-num">3</span>Review administrative information</li>
-      </ul>
-      <footer>For authorised Aikido Shinjukai members and headquarters staff.</footer>
+      <div class="s1-login-intro">
+        <div class="s1-brand">
+          <img class="s1-logo" src="https://aikidoshinjukai.com.sg/images/logo.png" alt="Aikido Shinjukai logo">
+          <span>Aikido Shinjukai</span>
+        </div>
+        <div class="s1-accent-line" aria-hidden="true"></div>
+        <h1>Welcome back</h1>
+        <p class="s1-subtitle" id="role-description">Manage student records, training terms and class schedules in one place.</p>
+      </div>
+
+      <!-- On a phone this block drops BELOW the sign-in panel (see the media query in the CSS). -->
+      <div class="s1-login-points">
+        <ul class="s1-benefits" id="benefits">
+          <li><span class="s1-num">1</span>Manage student records and belt details</li>
+          <li><span class="s1-num">2</span>Create terms and plan weekly classes</li>
+          <li><span class="s1-num">3</span>Review administrative information</li>
+        </ul>
+        <footer>For authorised Aikido Shinjukai members and headquarters staff.</footer>
+      </div>
     </section>
     <section class="s1-login-right" aria-label="Log in">
       <h2>Sign in to your account</h2>
