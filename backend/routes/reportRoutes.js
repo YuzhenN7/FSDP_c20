@@ -8,6 +8,7 @@ const router = express.Router();
 router.use(requireAuth, requireRole('admin'));
 
 router.get('/summary', reportController.getSummary);   // headline numbers for the dashboard
+router.get('/overview', reportController.overview);
 
 // TODO: more reports, e.g. GET /api/reports/payments-by-centre, GET /api/reports/outstanding-fees
 
