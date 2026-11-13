@@ -4,30 +4,19 @@
   <link rel="stylesheet" href="../css/styles.css"><link rel="stylesheet" href="../css/scrum6-members.css">
 </head><body class="s1-admin-page" data-role="admin" data-page="members">
 <main class="container">
-  <header class="page-head"><h1>Student records</h1>
-    <p class="muted">Create, search, update or deactivate student memberships. Principal dojo and belt are recorded here.</p>
+  <header class="page-head s1-head-row">
+    <div>
+      <h1>Student records</h1>
+      <p class="muted">Search, add, update or deactivate student memberships. Click a name to see that student's grading, fees and attendance.</p>
+    </div>
+    <button class="btn" type="button" id="add-student">+ Add student</button>
   </header>
-  <section class="s1-panel">
-    <h2 id="form-heading">Add a student</h2>
-    <p class="s1-lead">Membership details are recorded by headquarters staff. Current belt and payment eligibility are separate matters.</p>
-    <form id="member-form">
-      <div class="s1-fields">
-        <label>Name <input name="name" maxlength="150" required placeholder="Student's full name"></label>
-        <label>Email <input name="email" type="email" required placeholder="name@example.com"></label>
-        <label id="password-row">Initial login password <input name="password" type="password" minlength="8" required autocomplete="new-password" placeholder="At least 8 characters"></label>
-        <label>Principal dojo <select name="centre_id" required><option value="">Select dojo</option></select></label>
-        <label>Current belt <select name="belt_id" required><option value="">Select current belt</option></select></label>
-        <label>Membership status <select name="membership_status"><option value="active">Active</option><option value="suspended">Suspended</option><option value="inactive">Inactive</option></select></label>
-        <label>Membership start date <input name="joined_on" type="date" required></label>
-      </div>
-      <div class="s1-actions"><button class="btn" type="submit" id="save-student">Create student</button>
-        <button class="btn outline" type="button" id="cancel-edit" hidden>Cancel edit</button>
-        <span class="s1-help">Required fields must be completed. Duplicate emails are rejected.</span>
-      </div>
-    </form>
-    <div id="form-message" class="s1-message" role="status" hidden></div>
-  </section>
-  <section class="s1-panel">
+
+  <!-- "Student created", "Student record updated" and similar messages show here -->
+  <div id="form-message" class="s1-message" role="status" hidden></div>
+
+  <!-- The list of students, with search and filters -->
+  <section class="s1-panel" id="list-panel">
     <h2>All students</h2>
     <div class="s1-filter">
       <input id="search" type="search" aria-label="Search students" placeholder="Search name or email">
@@ -37,8 +26,41 @@
     </div>
     <div id="members-table" class="s1-table-wrap" aria-live="polite">Loading students…</div>
   </section>
+
+  <!-- One student's profile (shown when you click a name) -->
+  <section id="profile" hidden></section>
+
   <div class="s1-note">The grading SOP requires at least 3 months of membership, no outstanding membership fees, and evidence checks before grading. A student's active membership status alone does not establish grading eligibility.</div>
 </main>
+
+<!-- The add / edit form. It opens as a popup from "+ Add student" or an Edit button. -->
+<dialog id="member-dialog" class="s1-modal" aria-labelledby="form-heading">
+  <div class="s1-modal-head">
+    <div>
+      <h2 id="form-heading">Add a student</h2>
+      <p class="s1-lead">Membership details are recorded by headquarters staff. Current belt and payment eligibility are separate matters.</p>
+    </div>
+    <button class="s1-close" type="button" id="close-form" aria-label="Close">×</button>
+  </div>
+  <form id="member-form">
+    <div class="s1-fields">
+      <label>Name <input name="name" maxlength="150" required placeholder="Student's full name"></label>
+      <label>Email <input name="email" type="email" required placeholder="name@example.com"></label>
+      <label id="password-row">Initial login password <input name="password" type="password" minlength="8" required autocomplete="new-password" placeholder="At least 8 characters"></label>
+      <label>Principal dojo <select name="centre_id" required><option value="">Select dojo</option></select></label>
+      <label>Current belt <select name="belt_id" required><option value="">Select current belt</option></select></label>
+      <label>Membership status <select name="membership_status"><option value="active">Active</option><option value="suspended">Suspended</option><option value="inactive">Inactive</option></select></label>
+      <label>Membership start date <input name="joined_on" type="date" required></label>
+    </div>
+    <div id="modal-message" class="s1-message error" role="alert" hidden></div>
+    <div class="s1-actions">
+      <button class="btn" type="submit" id="save-student">Create student</button>
+      <button class="btn outline" type="button" id="cancel-edit">Cancel</button>
+      <span class="s1-help">Required fields must be completed. Duplicate emails are rejected.</span>
+    </div>
+  </form>
+</dialog>
+
 <script src="../js/api.js"></script><script src="../js/ui.js"></script><script src="../js/layout.js"></script>
 <script src="../js/members-sprint1.js"></script>
 </body></html>
