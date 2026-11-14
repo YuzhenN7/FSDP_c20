@@ -66,8 +66,8 @@ form.addEventListener('submit', async (e) => {
       session_time: val('time'),
       fee: Number(val('fee')),
       capacity: val('capacity') === '' ? undefined : Number(val('capacity')),
-      apply_open: val('apply-open'),
-      apply_close: val('apply-close'),
+      apply_open: new Date(val('apply-open')).toISOString(),
+      apply_close: new Date(val('apply-close')).toISOString(),
     });
     say('Session created.', 'ok');
     form.reset();

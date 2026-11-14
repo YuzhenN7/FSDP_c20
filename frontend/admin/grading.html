@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grading · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-role="admin" data-page="grading">
+  <main class="container">
+    <div class="page-head">
+      <h1>Grading results</h1>
+      <p class="muted">Grading history, newest first.</p>
+    </div>
+
+    <section class="card" id="list">Loading...</section>
+
+    <div class="todo">
+      <strong>To build here:</strong> a form to record a grading result for a student. When the result is a pass,
+      the student's belt is updated too. API: <code>gradingRoutes.js</code>, <code>gradingController.js</code> and <code>gradingModel.js</code> in <code>backend/</code>.
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script>
+    (async () => {
+      try {
+        const gradings = await api.get('/gradings');
+        renderTable('#list', [
+          { label: 'Date', render: (g) => esc(formatDate(g.graded_on)) },
+          { label: 'Student', key: 'student' },
+          { label: 'Graded for', key: 'belt' },
+          { label: 'Result', render: (g) => statusBadge(g.result) },
+          { label: 'Notes', key: 'notes' },
+        ], gradings);
+      } catch (err) {
+        showError('#list', err);
+      }
+    })();
+  </script>
+</body>
+</html>
