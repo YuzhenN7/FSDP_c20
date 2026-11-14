@@ -1,4 +1,4 @@
-// GRADING RESULTS - MODEL: the database queries. (Controllers call these; routes never touch the database.)
+// GRADING RESULTS 
 const db = require('../config/db');
 
 // list grading results, newest first

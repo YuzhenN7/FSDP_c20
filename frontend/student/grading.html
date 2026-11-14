@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grading · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-role="student" data-page="grading">
+  <main class="container">
+    <div class="page-head">
+      <h1>Grading</h1>
+      <p class="muted">Apply for a grading. We check your eligibility automatically.</p>
+    </div>
+
+    <p id="msg"></p>
+
+    <section class="card">
+      <h2>Available sessions</h2>
+      <div id="sessions" class="scroll">Loading...</div>
+    </section>
+
+    <section class="card">
+      <h2>My applications</h2>
+      <p class="muted">You will receive an email when an admin approves or rejects your application.</p>
+      <div id="mine" class="scroll">Loading...</div>
+    </section>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script src="/js/grading.js"></script>
+  <script src="/js/student-grading.js"></script>
+</body>
+</html>

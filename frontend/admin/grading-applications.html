@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grading applications · Aikido Shinjukai</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-role="admin" data-page="grading-applications">
+  <main class="container">
+    <div class="page-head">
+      <h1>Grading applications</h1>
+      <p class="muted">Review applications and place suitable students in a session.</p>
+    </div>
+
+    <p id="msg"></p>
+    <div id="full-notice"></div>
+
+    <section class="card">
+      <label for="filter" style="margin-top:0">Show</label>
+      <select id="filter" style="max-width:220px">
+        <option value="pending">Pending</option>
+        <option value="">All</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+      </select>
+      <div id="list" class="scroll" style="margin-top:12px">Loading...</div>
+    </section>
+
+    <section class="card" id="reject-card" hidden>
+      <h2 id="reject-title">Reject application</h2>
+      <label for="remark" style="margin-top:0">Remark (required)</label>
+      <textarea id="remark" rows="3" placeholder="Why is this application being rejected?"></textarea>
+      <p class="muted">The student will see the new status and receive an email.</p>
+      <div class="row-actions">
+        <button class="btn danger" id="confirm-reject">Confirm rejection</button>
+        <button class="btn outline" id="cancel-reject">Cancel</button>
+      </div>
+    </section>
+  </main>
+
+    <script src="/js/api.js"></script>
+  <script src="/js/ui.js"></script>
+  <script src="/js/layout.js"></script>
+  <script src="/js/grading.js"></script>
+  <script src="/js/grading-applications.js"></script>
+</body>
+</html>
