@@ -146,4 +146,32 @@ const myApplications = handle(async (req, res) => {
   res.json(await model.listByStudent(req.student.id));
 });
 
-module.exports = { createSession, listSessions, checkEligibility: checkEligibilityRoute, apply, myApplications };
+//
+
+// GET /api/grading-sessions/applications?status=pending
+const listApplications = handle(async (req, res) => {
+  res.json(await model.listApplications(req.query.status));
+});
+
+// PATCH /api/grading-sessions/applications/:id
+const reviewApplication = handle(async (req, res) => {
+  const id = parseId(req.params.id);
+  const action = req.body.action;
+  const remark = String(req.body.remark || '').trim();
+  if (action !== 'approved' && action !== 'rejected') throw httpError(400, "Action must be 'approved' or 'rejected'.");
+  if (action === 'rejected' && !remark) throw httpError(400, 'A remark is required to reject.');
+
+  const result = await model.reviewApplication(id, action, remark);
+  if (result.error) throw httpError(result.status, result.error);
+
+  // Email student 
+  console.log('[EMAIL] To: ' + result.email.to + ' | Hi ' + result.email.name +
+    ', your grading application was ' + action + '.' + (remark ? ' Remark: ' + remark : ''));
+  res.json(result.application);
+});
+
+module.exports = {
+  createSession, listSessions,
+  checkEligibility: checkEligibilityRoute, apply, myApplications,
+  listApplications, reviewApplication,
+};

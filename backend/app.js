@@ -7,6 +7,8 @@ const express = require('express');
 
 const app = express();
 app.use(express.json());
+const cors = require('cors');
+app.use(cors());
 
 // ---------- API (everything under /api) ----------
 app.get('/api/health', (req, res) => res.json({ ok: true }));

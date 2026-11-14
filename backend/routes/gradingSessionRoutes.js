@@ -13,5 +13,7 @@ router.get('/mine', requireRole('student'), loadStudent, c.myApplications);
 router.get('/:id/eligibility', requireRole('student'), loadStudent, c.checkEligibility);
 router.post('/:id/apply', requireRole('student'), loadStudent, c.apply);
 
-// router.get('/applications', requireRole('admin'), c.listApplications);
-// router.patch('/applications/:id', requireRole('admin'), c.reviewApplication);
+router.get('/applications', requireRole('admin'), c.listApplications);
+router.patch('/applications/:id', requireRole('admin'), c.reviewApplication);
+
+module.exports = router;

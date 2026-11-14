@@ -15,8 +15,11 @@ const port = process.env.PORT || 3000;
 
 async function start() {
   if (db.isLocal) {
-    // ...your existing local-mode code, unchanged...
-  } else {
+const loader = require('./scripts/data-loader');
+    await loader.ensureSchema();
+    await loader.ensureAdmin();
+    await loader.loadCsvData('sample-data');
+    console.log('Using the TEMPORARY local database (loaded from db/sample-data).');  } else {
     console.log('Using the NEON database (DATABASE_URL is set).');
   }
 

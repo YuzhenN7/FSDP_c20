@@ -70,4 +70,56 @@ async function listByStudent(studentId) {
   return rows;
 }
 
-module.exports = { createSession, listSessions, getSession, getEligibilityData, createApplication, listByStudent };
+//
+
+// GET applications for admin
+async function listApplications(status) {
+  const { rows } = await db.query(
+    'SELECT a.id, a.session_id, a.status, a.membership_status, a.eligibility_result, a.remark, a.applied_at, ' +
+    'u.name AS student, b.name AS belt, ' +
+    's.type, s.session_date, s.capacity, c.name AS centre_name, ' +
+    "(SELECT COUNT(*)::int FROM grading_applications x WHERE x.session_id = a.session_id AND x.status = 'approved') AS approved_count " +
+    'FROM grading_applications a ' +
+    'JOIN students st ON st.id = a.student_id ' +
+    'JOIN users u ON u.id = st.user_id ' +
+    'LEFT JOIN belt_levels b ON b.id = a.belt_id ' +
+    'JOIN grading_sessions s ON s.id = a.session_id ' +
+    'JOIN centres c ON c.id = s.centre_id ' +
+    'WHERE ($1::text IS NULL OR a.status = $1) ' +
+    'ORDER BY a.applied_at DESC, a.id DESC',
+    [status || null]
+  );
+  return rows;
+}
+
+// Approve or reject one application. 
+async function reviewApplication(id, action, remark) {
+  return db.transaction(async (q) => {
+    const found = await q(
+      'SELECT a.id, a.status, a.session_id, u.name, u.email ' +
+      'FROM grading_applications a JOIN students st ON st.id = a.student_id JOIN users u ON u.id = st.user_id ' +
+      'WHERE a.id = $1', [id]
+    );
+    const app = found.rows[0];
+    if (!app) return { error: 'Application not found.', status: 404 };
+    if (app.status !== 'pending') return { error: 'This application has already been ' + app.status + '.', status: 409 };
+
+    if (action === 'approved') {
+      // lock the session row
+      const s = await q('SELECT capacity FROM grading_sessions WHERE id = $1 FOR UPDATE', [app.session_id]);
+      const n = await q("SELECT COUNT(*)::int AS n FROM grading_applications WHERE session_id = $1 AND status = 'approved'", [app.session_id]);
+      if (n.rows[0].n >= s.rows[0].capacity) return { error: 'This session is full. Cannot approve.', status: 409 };
+    }
+
+    const upd = await q(
+      'UPDATE grading_applications SET status = $1, remark = $2, reviewed_at = now() WHERE id = $3 RETURNING *',
+      [action, remark || null, id]
+    );
+    return { application: upd.rows[0], email: { to: app.email, name: app.name } };
+  });
+}
+
+module.exports = {
+  createSession, listSessions, getSession, getEligibilityData,
+  createApplication, listByStudent, listApplications, reviewApplication,
+};

@@ -141,13 +141,14 @@ async function loadCsvData(dirName = 'sample-data') {
       `INSERT INTO users (name, email, password_hash, role) VALUES ($1, LOWER($2), $3, 'student') RETURNING id`,
       [r.name, r.email, hash]
     );
+    
     const student = await db.query(
-      `INSERT INTO students (user_id, centre_id, belt_id, joined_on)
-       VALUES ($1, $2, $3, COALESCE($4::date, CURRENT_DATE)) RETURNING id`,
-      [user.rows[0].id, centreId, beltId, r.joined_on]
+      `INSERT INTO students (user_id, centre_id, belt_id, joined_on, date_of_birth)
+       VALUES ($1, $2, $3, COALESCE($4::date, CURRENT_DATE), $5::date) RETURNING id`,
+      [user.rows[0].id, centreId, beltId, r.joined_on, r.date_of_birth || null]
     );
-    students.set(r.email.toLowerCase(), student.rows[0].id);
-  }
+    students.set(r.email.toLowerCase(), student.rows[0].id);   // NEW
+  }                                                             // NEW
 
   n = 1;
   for (const r of readCsv(dir, 'gradings.csv')) {
