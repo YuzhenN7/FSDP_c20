@@ -6,7 +6,7 @@
 // Once the backend sends "region" and "condition" for each centre, this page shows them automatically.
 
 (function () {
-  const REGIONS = ['Central', 'East', 'North', 'North-East', 'West'];
+    const REGIONS = ['Central', 'North', 'South', 'East', 'West'];
   const CONDITIONS = ['Open', 'Under renovation', 'Temporarily closed'];
   const NOT_SET = '<span class="muted">Not set</span>';
   const $ = (id) => document.getElementById(id);

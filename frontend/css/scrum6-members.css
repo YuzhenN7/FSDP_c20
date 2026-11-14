@@ -1,0 +1,29 @@
+/* ---------- Members page: Add student button, popup form and student profile ---------- */
+
+/* Page heading with the "+ Add student" button on the right */
+.s1-head-row { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
+.s1-head-row > div { flex:1 1 auto; min-width:0; }
+.s1-head-row .btn { flex:0 0 auto; }
+@media (max-width:700px) { .s1-head-row { flex-direction:column; } }
+
+/* Student name in the table (opens the profile) */
+.s1-name-link { color:var(--s1-navy); font-weight:650; }
+
+/* The popup form */
+.s1-modal { width:min(680px, calc(100% - 32px)); padding:22px; border:1px solid #e6e8ed; border-radius:12px; background:#fff; color:#16202e; box-shadow:0 12px 40px #17345233; }
+.s1-modal::backdrop { background:rgba(15, 25, 45, .45); }
+.s1-modal-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+.s1-modal h2 { color:var(--s1-navy); margin:0 0 5px; font-size:18px; font-weight:750; line-height:1.35; }
+.s1-close { border:0; background:none; color:#637084; font-size:26px; line-height:1; padding:2px 8px; cursor:pointer; border-radius:8px; }
+.s1-close:hover { background:#edf2fa; }
+
+/* The student profile */
+.s1-back { display:inline-block; color:var(--s1-navy); font-size:14px; }
+.s1-profile-head { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin:10px 0 4px; }
+.s1-profile-head h2 { color:var(--s1-navy); margin:0; font-size:22px; font-weight:750; }
+.s1-profile-head .s1-pill { vertical-align:middle; margin-left:6px; }
+.s1-profile-cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; }
+.s1-profile-cards article { border-radius:12px; border:1px solid #e6e8ed; background:#fff; padding:20px; }
+.s1-profile-cards h3 { margin:0; font-size:15px; color:#293b55; }
+.s1-profile-cards strong { display:block; font-size:22px; color:var(--s1-navy); margin:6px 0 10px; }
+.s1-profile-cards p { margin:0 0 4px; font-size:14px; }

@@ -1,14 +1,12 @@
-// MEMBERS = STUDENTS (admin view) - ROUTES: which URL goes to which controller function.   Mounted at /api/members
-// Used by: frontend/admin/members.html   (admin login required)
+// SCRUM-6: all student record APIs restricted to authenticated administrators.
 const express = require('express');
 const { requireAuth, requireRole } = require('../middleware/auth');
-const memberController = require('../controllers/memberController');
-
+const ctrl = require('../controllers/memberController');
 const router = express.Router();
 router.use(requireAuth, requireRole('admin'));
-
-router.get('/', memberController.listMembers);   // list all students with centre and current belt
-
-// TODO: PUT /api/members/:id  -> edit a student (e.g. assign a centre)
-
+router.get('/options', ctrl.options);
+router.get('/', ctrl.listMembers);
+router.post('/', ctrl.createMember);
+router.put('/:id', ctrl.updateMember);
+router.patch('/:id/deactivate', ctrl.deactivateMember);
 module.exports = router;

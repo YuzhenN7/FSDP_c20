@@ -66,6 +66,7 @@ async function settleCheckout(req, res) {
   if (!['success', 'fail', 'cancel'].includes(outcome)) return res.status(400).json({ error: 'Invalid outcome.' });
   const existing = await studentPortalModel.getAttempt(req.student.id, req.params.session);
   if (!existing) return res.status(404).json({ error: 'Payment session not found.' });
+  const reason = outcome === 'cancel' ? 'Payment cancelled' : 'Payment Declined';
   const r = await studentPortalModel.settleAttempt(
     req.student.id, req.params.session, outcome === 'success' ? 'success' : 'fail', reason
   );

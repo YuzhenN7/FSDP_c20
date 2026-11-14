@@ -1,38 +1,45 @@
-// Starts the server.   Run (inside the backend folder) with:  npm run dev
 
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+require('dotenv').config({
+  path: path.join(__dirname, '.env')
+});
 
 if (!process.env.JWT_SECRET) {
   console.error('Missing JWT_SECRET in backend/.env');
-  console.error('Copy backend/.env.example to backend/.env and fill it in (see README.md).');
   process.exit(1);
 }
 
 const db = require('./config/db');
 const app = require('./app');
+const loader = require('./scripts/data-loader');
+
 const port = process.env.PORT || 3000;
 
 async function start() {
   if (db.isLocal) {
-const loader = require('./scripts/data-loader');
+    console.log('Preparing temporary local database...');
+
     await loader.ensureSchema();
     await loader.ensureAdmin();
-    await loader.loadCsvData('sample-data');
-    console.log('Using the TEMPORARY local database (loaded from db/sample-data).');  } else {
-    console.log('Using the NEON database (DATABASE_URL is set).');
+
+    if (!(await loader.hasData())) {
+      const counts = await loader.loadCsvData('sample-data');
+      console.log('Loaded sample data:', counts);
+    }
+
+    console.log('Temporary local database is ready.');
+  } else {
+    console.log('Using the configured PostgreSQL database.');
   }
 
-  app.listen(port, (err) => {
-  if (err) {
-    console.error(`Could not listen on port ${port}:`, err.message);
-    process.exit(1);
-  }
-  console.log(`Aikido Shinjukai running at http://localhost:${port}`);
-});
+  app.listen(port, () => {
+    console.log(
+      `Aikido Shinjukai running at http://localhost:${port}`
+    );
+  });
 }
 
 start().catch((err) => {
-  console.error('Could not start:', err.message);
-  process.exit(1);
+  console.error('Could not start:', err);
+  process.exitCode = 1;
 });

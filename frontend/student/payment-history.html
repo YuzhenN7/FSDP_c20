@@ -50,7 +50,7 @@
             `<span style="${p.status === 'failed' ? 'color:#4A5568' : ''}">${esc(formatMoney(p.amount))}</span>` },
           //{ label: 'Reference', key: 'reference' },
           { label: '', render: (p) => (p.status === 'paid'
-              ? `<a href="/student/payment-success.html?id=${esc(p.id)}">View receipt</a>`
+              ?    `<a href="/student/receipt.html?id=${esc(p.id)}">View receipt</a>`
               : '') },
         ], payments);
       } catch (err) {

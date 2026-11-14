@@ -18,6 +18,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 // Admin features (admin login required)
 app.use('/api/centres', require('./routes/centreRoutes'));
 app.use('/api/classes', require('./routes/classRoutes'));          // also /venues and /instructors
+app.use('/api/terms', require('./routes/termRoutes'));              // SCRUM-17: term schedules
 app.use('/api/members', require('./routes/memberRoutes'));         // members = students, as seen by the admin
 app.use('/api/belts', require('./routes/beltRoutes'));
 app.use('/api/gradings', require('./routes/gradingRoutes'));

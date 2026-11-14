@@ -21,6 +21,14 @@ const STUDENT_PASSWORD = 'Student123!';
 async function ensureSchema() {
   const sql = fs.readFileSync(path.join(DB_DIR, 'schema.sql'), 'utf8');
   await db.query(sql);
+
+  // Sprint 1 migrations: apply after the shared schema, without replacing it.
+  const migrationsDir = path.join(DB_DIR, 'migrations');
+  if (fs.existsSync(migrationsDir)) {
+    for (const filename of fs.readdirSync(migrationsDir).filter((x) => /^\d+_scrum.*\.sql$/.test(x)).sort()) {
+      await db.query(fs.readFileSync(path.join(migrationsDir, filename), 'utf8'));
+    }
+  }
 }
 
 async function ensureAdmin() {
@@ -63,7 +71,7 @@ function lookup(map, name, what, file, rowNumber) {
 // Deletes all centres, students, classes, fees... (keeps the admin account), ready for a fresh load
 async function clearData() {
   await db.query(
-    `TRUNCATE attendance, payments, fees, gradings, classes, instructors, venues, students, centres, belt_levels, fee_package_items, fee_packages, fee_types
+    `TRUNCATE public_holidays, term_class_schedule, terms, attendance, payments, fees, gradings, classes, instructors, venues, students, centres, belt_levels, fee_package_items, fee_packages, fee_types
      RESTART IDENTITY CASCADE`
   );
   await db.query(`DELETE FROM users WHERE role = 'student'`);
@@ -94,7 +102,10 @@ async function loadCsvData(dirName = 'sample-data') {
   }
 
   for (const r of readCsv(dir, 'centres.csv')) {
-    const { rows } = await db.query('INSERT INTO centres (name, address) VALUES ($1, $2) RETURNING id', [r.name, r.address]);
+    const { rows } = await db.query(
+      `INSERT INTO centres (name, address, region, condition) VALUES ($1, $2, $3, COALESCE($4, 'Open')) RETURNING id`,
+      [r.name, r.address, r.region, r.condition]
+    );
     centres.set(r.name, rows[0].id);
   }
 
