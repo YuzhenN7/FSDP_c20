@@ -1,25 +1,25 @@
-// Adds the top bar + navigation and checks the person is allowed on the page.
-//
-// Put these on <body>:
-//   data-role="admin"   (or "student")  -> page needs that login
-//   data-page="belts"                   -> which nav link to highlight
-//
-// TO ADD A NEW PAGE TO THE MENU: add one line to ADMIN_NAV or STUDENT_NAV below.
-
 const ADMIN_NAV = [
   { page: 'dashboard', label: 'Dashboard', href: '/admin/dashboard.html' },
-  { page: 'centres', label: 'Centres', href: '/admin/centres.html' },
-  { page: 'classes', label: 'Classes', href: '/admin/classes.html' },
-  { page: 'terms', label: 'Term Schedules', href: '/admin/terms.html' },
-  { page: 'members', label: 'Members', href: '/admin/members.html' },
-  { page: 'belts', label: 'Belts', href: '/admin/belts.html' },
-  { page: 'grading', label: 'Grading', href: '/admin/grading.html' },
-  { page: 'grading-sessions', label: 'Grading sessions', href: '/admin/grading-sessions.html' },
-  { page: 'grading-applications', label: 'Grading applications', href: '/admin/grading-applications.html' },
-  { page: 'attendance', label: 'Attendance', href: '/admin/attendance.html' },
-  { page: 'fees', label: 'Fees', href: '/admin/fees.html' },
-  { page: 'fee-setup', label: 'Fee setup', href: '/admin/fee-setup.html' },  // added by Yu Wen
-  { page: 'payments', label: 'Payments', href: '/admin/payments.html' },
+  { label: 'Dojos & classes', children: [
+    { page: 'centres', label: 'Centres', href: '/admin/centres.html' },
+    { page: 'classes', label: 'Classes', href: '/admin/classes.html' },
+    { page: 'terms', label: 'Term Schedules', href: '/admin/terms.html' },
+    { page: 'attendance', label: 'Attendance', href: '/admin/attendance.html' },
+  ] },
+  { label: 'Members', children: [
+    { page: 'members', label: 'Members', href: '/admin/members.html' },
+    { page: 'belts', label: 'Belts', href: '/admin/belts.html' },
+  ] },
+  { label: 'Gradings', children: [
+    { page: 'grading', label: 'Results', href: '/admin/grading.html' },
+    { page: 'grading-sessions', label: 'Sessions', href: '/admin/grading-sessions.html' },
+    { page: 'grading-applications', label: 'Applications', href: '/admin/grading-applications.html' },
+  ] },
+  { label: 'Fees & payments', children: [
+    { page: 'fees', label: 'Fees', href: '/admin/fees.html' },
+    { page: 'fee-setup', label: 'Fee setup', href: '/admin/fee-setup.html' },  // added by Yu Wen
+    { page: 'payments', label: 'Payments', href: '/admin/payments.html' },
+  ] },
   { page: 'reports', label: 'Reports', href: '/admin/reports.html' },
 ];
 
@@ -31,9 +31,10 @@ const STUDENT_NAV = [
   { page: 'payment-history', label: 'Payment history', href: '/student/payment-history.html' },
 ];
 
+
 (function buildLayout() {
   const requiredRole = document.body.dataset.role;
-  if (!requiredRole) return; // public page (login/register) - no top bar
+  if (!requiredRole) return; 
 
   const user = api.getUser();
   if (!api.getToken() || !user) {
@@ -47,11 +48,20 @@ const STUDENT_NAV = [
 
   const nav = requiredRole === 'admin' ? ADMIN_NAV : STUDENT_NAV;
   const current = document.body.dataset.page;
+  const linkHtml = (n) => `<a href="${n.href}" class="${n.page === current ? 'active' : ''}">${esc(n.label)}</a>`;
+
   const links = nav
-    .map((n) => `<a href="${n.href}" class="${n.page === current ? 'active' : ''}">${esc(n.label)}</a>`)
+    .map((n) => {
+      if (!n.children) return linkHtml(n);
+      const here = n.children.some((c) => c.page === current);
+      return `<div class="dd">
+        <button type="button" class="dd-btn ${here ? 'active' : ''}" aria-haspopup="true" aria-expanded="false">${esc(n.label)} \u25BE</button>
+        <div class="dd-menu">${n.children.map(linkHtml).join('')}</div>
+      </div>`;
+    })
     .join('');
 
-  const bar = document.createElement('header');
+const bar = document.createElement('header');
   bar.className = 'topbar';
   bar.innerHTML = `
     <a class="brand" href="${api.homePageFor(requiredRole)}">Aikido Shinjukai</a>
@@ -62,6 +72,26 @@ const STUDENT_NAV = [
       <button class="linkbtn" id="logout-btn">Log out</button>
     </div>`;
   document.body.prepend(bar);
+
+  // dropdown menus
+  function closeMenus(except) {
+    bar.querySelectorAll('.dd.open').forEach((dd) => {
+      if (dd !== except) {
+        dd.classList.remove('open');
+        dd.querySelector('.dd-btn').setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+  bar.addEventListener('click', (e) => {
+    const btn = e.target.closest('.dd-btn');
+    if (!btn) return;
+    const dd = btn.parentElement;
+    closeMenus(dd);
+    const open = dd.classList.toggle('open');
+    btn.setAttribute('aria-expanded', String(open));
+  });
+  document.addEventListener('click', (e) => { if (!bar.contains(e.target)) closeMenus(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenus(); });
 
   document.getElementById('logout-btn').addEventListener('click', async () => {
     // Always clear the browser session; try server-side token revocation first.
