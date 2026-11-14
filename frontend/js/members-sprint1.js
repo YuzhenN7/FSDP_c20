@@ -33,6 +33,31 @@
 
   const pill = (status) => `<span class="s1-pill ${esc(status)}">${esc(status)}</span>`;
 
+  // ---------- Age and discount group (from date of birth + concession) ----------
+  // Age in whole years today, or null when no date of birth is recorded
+  function ageOf(dateOfBirth) {
+    if (!dateOfBirth) return null;
+    const [y, m, d] = String(dateOfBirth).slice(0, 10).split('-').map(Number);
+    const now = new Date();
+    let age = now.getFullYear() - y;
+    if (now.getMonth() + 1 < m || (now.getMonth() + 1 === m && now.getDate() < d)) age--;
+    return age;
+  }
+  // 'Child' (under 13), 'Senior' (65+), 'Student' (recorded as a full-time student AND aged 17-25), 'NSF', or ''
+  function groupOf(s) {
+    const age = ageOf(s.date_of_birth);
+    if (age !== null && age < 13) return 'Child';
+    if (age !== null && age >= 65) return 'Senior';
+    if (s.concession === 'nsf') return 'NSF';
+    if (s.concession === 'student' && age !== null && age >= 17 && age <= 25) return 'Student';
+    return '';
+  }
+  const ageText = (s) => {
+    const age = ageOf(s.date_of_birth);
+    const group = groupOf(s);
+    return age === null ? '-' : esc(String(age)) + (group ? ` <span class="s1-pill">${esc(group)}</span>` : '');
+  };
+
   // ---------- Load the list (search + filters are applied by the server) ----------
   async function load() {
     const filters = {
@@ -54,12 +79,13 @@
 
   function drawTable() {
     if (!shown.length) { table.innerHTML = '<p class="empty">No matching students.</p>'; return; }
-    table.innerHTML = `<table><thead><tr><th>Name</th><th>Email</th><th>Principal dojo</th><th>Belt</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead><tbody>` +
+    table.innerHTML = `<table><thead><tr><th>Name</th><th>Email</th><th>Principal dojo</th><th>Belt</th><th>Age</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead><tbody>` +
       shown.map((s) => `<tr>
         <td><a class="s1-name-link" href="#student-${Number(s.id)}">${esc(s.name)}</a></td>
         <td>${esc(s.email)}</td>
         <td>${esc(s.centre || 'Not assigned')}</td>
         <td>${esc(s.belt || 'Not assigned')}</td>
+        <td>${ageText(s)}</td>
         <td>${pill(s.membership_status)}</td>
         <td>${esc(formatDate(s.joined_on))}</td>
         <td><div class="s1-inline-buttons"><button class="btn small outline" type="button" data-edit="${Number(s.id)}">Edit</button>
@@ -79,6 +105,8 @@
         <button class="btn small outline" type="button" data-edit="${Number(s.id)}">Edit</button>
       </div>
       <p class="s1-lead">${esc(s.email)} · ${esc(s.centre || 'No dojo assigned')} · Joined ${esc(formatDate(s.joined_on))}</p>
+      <p class="s1-lead">Date of birth: ${s.date_of_birth ? esc(formatDate(s.date_of_birth)) + ' (age ' + ageText(s) + ')' : 'not recorded'}
+        · Concession: ${esc({ none: 'none', student: 'full-time student', nsf: 'NSF' }[s.concession] || 'none')}</p>
       <div id="profile-cards">Loading records…</div>`;
 
     let gradings, fees, attendance;
@@ -161,10 +189,11 @@
     $('#password-row').hidden = Boolean(student);
 
     if (student) {
-      for (const name of ['name', 'email', 'centre_id', 'belt_id', 'membership_status', 'joined_on']) {
+      for (const name of ['name', 'email', 'centre_id', 'belt_id', 'membership_status', 'joined_on', 'date_of_birth', 'concession']) {
         const value = student[name] == null ? '' : String(student[name]);
-        field(name).value = name === 'joined_on' ? value.slice(0, 10) : value;
+        field(name).value = name === 'joined_on' || name === 'date_of_birth' ? value.slice(0, 10) : value;
       }
+      if (!field('concession').value) field('concession').value = 'none';
     } else {
       field('joined_on').value = today();
     }
@@ -184,6 +213,7 @@
       name: field('name').value.trim(), email: field('email').value.trim(),
       centre_id: Number(field('centre_id').value), belt_id: Number(field('belt_id').value),
       joined_on: field('joined_on').value, membership_status: field('membership_status').value,
+      date_of_birth: field('date_of_birth').value || null, concession: field('concession').value,
     };
     if (!editingId) payload.password = field('password').value;
 
@@ -238,7 +268,11 @@
       const options = await api.get('/members/options');
       const optionTags = (rows) => rows.map((r) => `<option value="${Number(r.id)}">${esc(r.name)}</option>`).join('');
       field('centre_id').innerHTML = '<option value="">Select dojo</option>' + optionTags(options.centres);
-      field('belt_id').innerHTML = '<option value="">Select current belt</option>' + optionTags(options.belts);
+      // Belts grouped by ladder: adults (13 and above) and juniors (under 13)
+      const ladder = (track) => options.belts.filter((b) => (b.track || 'adult') === track);
+      field('belt_id').innerHTML = '<option value="">Select current belt</option>' +
+        `<optgroup label="Adult ladder (13 and above)">${optionTags(ladder('adult'))}</optgroup>` +
+        `<optgroup label="Junior ladder (under 13)">${optionTags(ladder('junior'))}</optgroup>`;
       $('#filter-dojo').innerHTML = '<option value="">All dojos</option>' + optionTags(options.centres);
       await load();
     } catch (err) {

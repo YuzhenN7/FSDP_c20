@@ -1,9 +1,12 @@
 // SCRUM-6: admin student records. Updates users + students in one SQL statement.
 const db = require('../config/db');
 
+// date_of_birth decides the ladder (under 13 = junior) and the senior discount (65+).
+// concession is the discount status the admin records after seeing proof: none / student / nsf.
 const details = `SELECT s.id, s.user_id, u.name, u.email, s.centre_id,
-                       c.name AS centre, s.belt_id, b.name AS belt,
-                       s.joined_on, s.membership_status
+                       c.name AS centre, s.belt_id, b.name AS belt, b.track AS belt_track,
+                       s.joined_on, s.membership_status,
+                       s.date_of_birth::text AS date_of_birth, s.concession
                   FROM students s JOIN users u ON u.id = s.user_id
                   LEFT JOIN centres c ON c.id = s.centre_id
                   LEFT JOIN belt_levels b ON b.id = s.belt_id`;
@@ -26,27 +29,27 @@ async function getMember(id) {
 async function listOptions() {
   const [centres, belts] = await Promise.all([
     db.query('SELECT id, name FROM centres ORDER BY name'),
-    db.query('SELECT id, name FROM belt_levels ORDER BY sort_order'),
+    db.query('SELECT id, name, track FROM belt_levels ORDER BY sort_order'),
   ]);
   return { centres: centres.rows, belts: belts.rows };
 }
 
-async function createMember({ name, email, passwordHash, centre_id, belt_id, joined_on, membership_status }) {
+async function createMember({ name, email, passwordHash, centre_id, belt_id, joined_on, membership_status, date_of_birth, concession }) {
   const { rows } = await db.query(
     `WITH new_user AS (
        INSERT INTO users (name, email, password_hash, role)
        VALUES ($1, LOWER($2), $3, 'student') RETURNING id
      ), new_student AS (
-       INSERT INTO students (user_id, centre_id, belt_id, joined_on, membership_status)
-       SELECT id, $4, $5, $6::date, $7 FROM new_user RETURNING id
+       INSERT INTO students (user_id, centre_id, belt_id, joined_on, membership_status, date_of_birth, concession)
+       SELECT id, $4, $5, $6::date, $7, $8::date, $9 FROM new_user RETURNING id
      )
      SELECT id FROM new_student`,
-    [name, email, passwordHash, centre_id, belt_id, joined_on, membership_status]
+    [name, email, passwordHash, centre_id, belt_id, joined_on, membership_status, date_of_birth, concession]
   );
   return getMember(rows[0].id);
 }
 
-async function updateMember(id, { name, email, centre_id, belt_id, joined_on, membership_status }) {
+async function updateMember(id, { name, email, centre_id, belt_id, joined_on, membership_status, date_of_birth, concession }) {
   const { rows } = await db.query(
     `WITH updated_user AS (
        UPDATE users AS u SET name = $2, email = LOWER($3)
@@ -54,12 +57,17 @@ async function updateMember(id, { name, email, centre_id, belt_id, joined_on, me
        RETURNING u.id
      ), updated_student AS (
        UPDATE students AS s
-          SET centre_id = $4, belt_id = $5, joined_on = $6::date, membership_status = $7
+          SET centre_id = $4, belt_id = $5, joined_on = $6::date, membership_status = $7,
+              date_of_birth = CASE WHEN $10::boolean THEN $8::date ELSE s.date_of_birth END,
+              concession = COALESCE($9, s.concession)
          FROM updated_user u WHERE s.id = $1 AND s.user_id = u.id
        RETURNING s.id
      )
      SELECT id FROM updated_student`,
-    [id, name, email, centre_id, belt_id, joined_on, membership_status]
+    // date_of_birth / concession === undefined means "not sent": keep the saved value
+    [id, name, email, centre_id, belt_id, joined_on, membership_status,
+      date_of_birth === undefined ? null : date_of_birth, concession === undefined ? null : concession,
+      date_of_birth !== undefined]
   );
   return rows.length ? getMember(rows[0].id) : null;
 }

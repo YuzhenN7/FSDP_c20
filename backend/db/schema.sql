@@ -73,6 +73,74 @@ CREATE TABLE IF NOT EXISTS gradings (
   notes      TEXT
 );
 
+CREATE TABLE IF NOT EXISTS fees (
+  id          SERIAL PRIMARY KEY,
+  student_id  INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  description TEXT NOT NULL,                 -- e.g. 'Term 4 membership'
+  amount      NUMERIC(10, 2) NOT NULL,
+  due_date    DATE,
+  status      TEXT NOT NULL DEFAULT 'unpaid' CHECK (status IN ('unpaid', 'paid'))
+);
+
+CREATE TABLE IF NOT EXISTS payments (
+  id        SERIAL PRIMARY KEY,
+  fee_id    INTEGER NOT NULL REFERENCES fees(id) ON DELETE CASCADE,
+  amount    NUMERIC(10, 2) NOT NULL,
+  method    TEXT NOT NULL DEFAULT 'online',
+  reference TEXT,
+  paid_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS attendance (
+  id         SERIAL PRIMARY KEY,
+  class_id   INTEGER NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+  student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  class_date DATE NOT NULL,
+  status     TEXT NOT NULL CHECK (status IN ('present', 'absent')),
+  UNIQUE (class_id, student_id, class_date)
+);
+
+
+/* Added this for fees and package page for admin POV - Yu Wen */
+CREATE TABLE IF NOT EXISTS fee_types (
+  id                SERIAL PRIMARY KEY,
+  name              TEXT NOT NULL UNIQUE,
+  category          TEXT NOT NULL DEFAULT 'other'
+                    CHECK (category IN ('registration','membership','class_package','grading','late_fee','other')),
+  student_group     TEXT NOT NULL DEFAULT 'All' CHECK (student_group IN ('Adult','Children','All')),
+  base_amount       NUMERIC(10, 2),
+  discount_percent  NUMERIC(5, 2) NOT NULL DEFAULT 0 CHECK (discount_percent BETWEEN 0 AND 100),
+  can_be_in_package BOOLEAN NOT NULL DEFAULT TRUE,
+  description       TEXT,
+  is_active         BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS fee_packages (
+  id               SERIAL PRIMARY KEY,
+  name             TEXT NOT NULL UNIQUE,
+  student_group    TEXT NOT NULL DEFAULT 'All' CHECK (student_group IN ('Adult','Children','All')),
+  discount_percent NUMERIC(5, 2) NOT NULL DEFAULT 0 CHECK (discount_percent BETWEEN 0 AND 100),
+  validity         TEXT,
+  description      TEXT,
+  is_active        BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS fee_package_items (
+  package_id  INTEGER NOT NULL REFERENCES fee_packages(id) ON DELETE CASCADE,
+  fee_type_id INTEGER NOT NULL REFERENCES fee_types(id),
+  PRIMARY KEY (package_id, fee_type_id)
+);
+
+CREATE TABLE IF NOT EXISTS payment_attempts (
+  id             SERIAL PRIMARY KEY,
+  fee_id         INTEGER NOT NULL REFERENCES fees(id) ON DELETE CASCADE,
+  session_id     TEXT NOT NULL UNIQUE,
+  amount         NUMERIC(10, 2) NOT NULL,
+  status         TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','paid','failed')),
+  failure_reason TEXT,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+-- ---------- Grading sessions and applications ----------
 CREATE TABLE IF NOT EXISTS grading_sessions (
   id           SERIAL PRIMARY KEY,
   type         TEXT NOT NULL CHECK (type IN ('mass_adult', 'mass_children', 'private')),
@@ -101,33 +169,6 @@ CREATE TABLE IF NOT EXISTS grading_applications (
   applied_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
   reviewed_at        TIMESTAMPTZ,
   UNIQUE (session_id, student_id)
-);
-
-CREATE TABLE IF NOT EXISTS fees (
-  id          SERIAL PRIMARY KEY,
-  student_id  INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-  description TEXT NOT NULL,                 -- e.g. 'Term 4 membership'
-  amount      NUMERIC(10, 2) NOT NULL,
-  due_date    DATE,
-  status      TEXT NOT NULL DEFAULT 'unpaid' CHECK (status IN ('unpaid', 'paid'))
-);
-
-CREATE TABLE IF NOT EXISTS payments (
-  id        SERIAL PRIMARY KEY,
-  fee_id    INTEGER NOT NULL REFERENCES fees(id) ON DELETE CASCADE,
-  amount    NUMERIC(10, 2) NOT NULL,
-  method    TEXT NOT NULL DEFAULT 'online',
-  reference TEXT,
-  paid_at   TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS attendance (
-  id         SERIAL PRIMARY KEY,
-  class_id   INTEGER NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
-  student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-  class_date DATE NOT NULL,
-  status     TEXT NOT NULL CHECK (status IN ('present', 'absent')),
-  UNIQUE (class_id, student_id, class_date)
 );
 
 ALTER TABLE students ADD COLUMN IF NOT EXISTS date_of_birth DATE;

@@ -1,8 +1,26 @@
-name,sort_order
-6th kyu,1
-5th kyu,2
-4th kyu,3
-3rd kyu,4
-2nd kyu,5
-1st kyu,6
-1st dan,7
+name,sort_order,track,grading_fee
+Mukyu,0,adult,
+6th kyu,1,adult,50
+5th kyu,2,adult,50
+4th kyu,3,adult,65
+3rd kyu,4,adult,65
+2nd kyu,5,adult,80
+1st kyu,6,adult,80
+1st dan,7,adult,260
+2nd dan,8,adult,280
+3rd dan,9,adult,380
+4th dan,10,adult,480
+Junior mukyu,100,junior,
+Junior 12th kyu,101,junior,30
+Junior 11th kyu,102,junior,30
+Junior 10th kyu,103,junior,30
+Junior 9th kyu,104,junior,30
+Junior 8th kyu,105,junior,40
+Junior 7th kyu,106,junior,40
+Junior 6th kyu,107,junior,40
+Junior 5th kyu,108,junior,40
+Junior 4th kyu,109,junior,50
+Junior 3rd kyu,110,junior,50
+Junior 2nd kyu,111,junior,50
+Junior 1st kyu,112,junior,50
+Junior dan,113,junior,120
