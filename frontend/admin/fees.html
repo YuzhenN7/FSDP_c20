@@ -5,40 +5,223 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Fees · Aikido Shinjukai</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/fees.css">
 </head>
 <body data-role="admin" data-page="fees">
-  <main class="container">
-    <div class="page-head">
-      <h1>Fees</h1>
-      <p class="muted">Fees assigned to students, and whether they are paid.</p>
-    </div>
+  <main class="container fees-wide">
+    <!-- "3 charges raised", "Charge voided" and error messages show here -->
+    <div id="msg" class="fees-msg" role="status" hidden></div>
 
-    <section class="card" id="list">Loading...</section>
+    <!-- ============ 1. The list of charges ============ -->
+    <section id="view-list">
+      <div class="fees-head">
+        <div>
+          <h1>Fees</h1>
+          <p class="muted">Raise charges, take counter payments, and correct or settle existing charges.</p>
+        </div>
+        <div class="fees-actions">
+          <button class="btn" type="button" data-go="grading">Raise grading fees</button>
+          <button class="btn" type="button" data-go="counter">Record counter payment</button>
+          <button class="btn outline" type="button" id="open-late">Add late fee</button>
+        </div>
+      </div>
 
-    <div class="todo">
-      <strong>To build here:</strong> assign a fee to a student (or a whole centre), edit or remove an unpaid fee.
-      API: <code>feeRoutes.js</code>, <code>feeController.js</code> and <code>feeModel.js</code> in <code>backend/</code>.
-    </div>
+      <div class="card">
+        <div class="fees-filters">
+          <label>Centre <select id="f-centre"><option value="">All centres</option></select></label>
+          <label>Status
+            <select id="f-status">
+              <option value="">All</option>
+              <option value="pending">Pending</option>
+              <option value="overdue">Overdue</option>
+              <option value="paid">Paid</option>
+              <option value="void">Void</option>
+            </select>
+          </label>
+          <label>Search student <input id="f-search" type="search" placeholder="Name or email"></label>
+          <span class="count" id="f-count"></span>
+        </div>
+        <div id="fees-table">Loading...</div>
+      </div>
+    </section>
+
+    <!-- ============ 2. Raise grading fees ============ -->
+    <section id="view-grading" hidden>
+      <a class="back-link" href="#" data-go="list">&larr; Back to fees</a>
+      <div class="page-head">
+        <h1>Raise grading fees</h1>
+        <p class="muted">Students whose grading application is approved. Each one is charged the fee of the grade they are testing for.</p>
+      </div>
+      <div class="card">
+        <div class="fees-two">
+          <div>
+            <div class="fees-filters">
+              <label>Grading session <select id="g-session"></select></label>
+              <label>Ladder
+                <select id="g-track"><option value="">All</option><option value="adult">Adult</option><option value="junior">Junior</option></select>
+              </label>
+              <label>Grade band <select id="g-band"><option value="">All bands</option></select></label>
+              <label>Group
+                <select id="g-group">
+                  <option value="">All groups</option>
+                  <option value="Adult">Adults (13 to 64, no concession)</option>
+                  <option value="Child">Children under 13</option>
+                  <option value="Senior">Senior, 65+</option>
+                  <option value="Student">Full-time student</option>
+                  <option value="NSF">NSF</option>
+                  <option value="Private">Private grading</option>
+                </select>
+              </label>
+            </div>
+            <div class="pick-head">
+              <h2>Eligible applicants <span class="muted" id="g-count" style="font-weight:400;font-size:14px"></span></h2>
+              <button class="btn outline small" type="button" id="g-all">Select all</button>
+            </div>
+            <div id="g-list" class="pick-list"></div>
+            <p class="fees-hint" style="margin-top:12px">Fees per grade are set on the Belts page. Students already charged for a session are not listed.</p>
+          </div>
+
+          <aside class="summary fees-form">
+            <h3>Summary</h3>
+            <label>Due date <input id="g-due" type="date"></label>
+            <div id="g-summary"></div>
+            <p class="error" id="g-error"></p>
+            <button class="btn" type="button" id="g-submit" disabled>Raise charges</button>
+            <p class="fees-hint" style="margin:12px 0 0">The description on each charge is filled in automatically, for example "Grading fee: 3rd kyu (13 Dec 2026)".</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 3. Record a counter payment ============ -->
+    <section id="view-counter" hidden>
+      <a class="back-link" href="#" data-go="list">&larr; Back to fees</a>
+      <div class="page-head">
+        <h1>Record counter payment</h1>
+        <p class="muted">For money taken at the dojo. Each fee is created and marked paid in one step, and appears on the Payments page.</p>
+      </div>
+      <div class="card">
+        <div class="fees-two">
+          <div class="fees-form">
+            <div class="fees-row2">
+              <label>Centre <select id="c-centre"></select></label>
+              <label>Student <select id="c-student"></select></label>
+            </div>
+            <p class="fees-hint" id="c-about"></p>
+
+            <div class="fees-row2">
+              <label>Tick a whole package <select id="c-package"><option value="">Choose a package...</option></select></label>
+              <label>Concession on training passes
+                <select id="c-discount">
+                  <option value="0">None</option>
+                  <option value="40">Senior, 65+ (40% off)</option>
+                  <option value="50">Full-time student / NSF (50% off)</option>
+                </select>
+              </label>
+            </div>
+
+            <label style="margin-bottom:8px">What are they paying for?</label>
+            <div id="c-items" class="pick-list"></div>
+
+            <div class="fees-row2" style="margin-top:16px">
+              <label>Paid by
+                <select id="c-method"><option value="cash">Cash</option><option value="paynow">PayNow</option><option value="card">NETS / card</option></select>
+              </label>
+              <label>Receipt / reference <input id="c-reference" maxlength="60" placeholder="e.g. R-10232"></label>
+            </div>
+          </div>
+
+          <aside class="summary">
+            <h3>Summary</h3>
+            <div id="c-summary"></div>
+            <p class="error" id="c-error"></p>
+            <button class="btn" type="button" id="c-submit" disabled>Record payment</button>
+          </aside>
+        </div>
+      </div>
+    </section>
   </main>
+
+  <!-- ============ Pop-ups for one charge ============ -->
+  <dialog id="dlg-settle" class="fees-dialog">
+    <form class="fees-form" method="dialog" novalidate>
+      <h2>Settle charge</h2>
+      <p class="about" data-about></p>
+      <div class="fees-row2">
+        <label>Paid by
+          <select name="method"><option value="cash">Cash</option><option value="paynow">PayNow</option><option value="card">NETS / card</option></select>
+        </label>
+        <label>Paid on <input name="paid_on" type="date"></label>
+      </div>
+      <label>Receipt / reference <input name="reference" maxlength="60" placeholder="e.g. R-10233"></label>
+      <p class="error" data-error></p>
+      <div class="fees-buttons">
+        <button class="btn" type="submit">Mark as paid</button>
+        <button class="btn outline" type="button" data-close>Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-edit" class="fees-dialog">
+    <form class="fees-form" method="dialog" novalidate>
+      <h2>Edit charge</h2>
+      <p class="about" data-about></p>
+      <div class="fees-row2">
+        <label>Amount <input name="amount" type="number" min="0.01" step="0.01"></label>
+        <label>Due date <input name="due_date" type="date"></label>
+      </div>
+      <label>Reason for the change <input name="reason" maxlength="200" placeholder="e.g. Agreed extension"></label>
+      <p class="fees-hint">Only unpaid charges can be edited. The change is logged with your name.</p>
+      <p class="error" data-error></p>
+      <div class="fees-buttons">
+        <button class="btn" type="submit">Save changes</button>
+        <button class="btn outline" type="button" data-close>Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-void" class="fees-dialog">
+    <form class="fees-form" method="dialog" novalidate>
+      <h2>Void charge</h2>
+      <p class="about" data-about></p>
+      <label>Reason <textarea name="reason" rows="2" maxlength="200" placeholder="e.g. Raised by mistake, student withdrew from grading"></textarea></label>
+      <div class="fees-row2">
+        <label>Voided by <input name="who" readonly></label>
+        <label>Date and time <input name="when" readonly></label>
+      </div>
+      <label>Signature: re-enter your password <input name="password" type="password" autocomplete="current-password"></label>
+      <p class="fees-hint">The charge stays on record marked Void, with your name, the time and the reason. It no longer counts toward the student's balance. This cannot be undone.</p>
+      <p class="error" data-error></p>
+      <div class="fees-buttons">
+        <button class="btn danger" type="submit">Sign and void charge</button>
+        <button class="btn outline" type="button" data-close>Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-late" class="fees-dialog">
+    <form class="fees-form" method="dialog" novalidate>
+      <h2>Add late fee</h2>
+      <p class="about">Adds the Late Submission Fee to one student as a pending charge.</p>
+      <div class="fees-row2">
+        <label>Centre <select name="centre"></select></label>
+        <label>Student <select name="student"></select></label>
+      </div>
+      <div class="fees-row2">
+        <label>Amount <input name="amount" type="number" min="0.01" step="0.01"></label>
+        <label>Due date <input name="due_date" type="date"></label>
+      </div>
+      <p class="error" data-error></p>
+      <div class="fees-buttons">
+        <button class="btn" type="submit">Add charge</button>
+        <button class="btn outline" type="button" data-close>Cancel</button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="/js/api.js"></script>
   <script src="/js/ui.js"></script>
   <script src="/js/layout.js"></script>
-  <script>
-    (async () => {
-      try {
-        const fees = await api.get('/fees');
-        renderTable('#list', [
-          { label: 'Student', key: 'student' },
-          { label: 'Fee', key: 'description' },
-          { label: 'Amount', render: (f) => esc(formatMoney(f.amount)) },
-          { label: 'Due', render: (f) => esc(formatDate(f.due_date)) },
-          { label: 'Status', render: (f) => statusBadge(f.status) },
-        ], fees);
-      } catch (err) {
-        showError('#list', err);
-      }
-    })();
-  </script>
+  <script src="/js/fees.js"></script>
 </body>
 </html>

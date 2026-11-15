@@ -1,0 +1,97 @@
+/* Admin Fees page (frontend/admin/fees.html). Loaded after styles.css. */
+
+.container.fees-wide { max-width: 1180px; }
+[hidden] { display: none !important; }
+
+.badge.pending { background: var(--amber-bg); color: var(--amber); }
+.badge.overdue { background: #fde4e1; color: var(--red); }
+.badge.void    { background: #ececec; color: #6b7280; }
+.badge { text-transform: capitalize; }
+.tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600;
+       background: #e8eef7; color: var(--navy); margin-left: 6px; vertical-align: middle; }
+
+/* ---------- Page head and messages ---------- */
+.fees-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.fees-head h1 { margin: 0 0 4px; }
+.fees-head p { margin: 0; }
+.fees-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.fees-msg { margin: 0 0 16px; padding: 10px 14px; border-radius: 8px; font-size: 14px; background: var(--green-bg); color: var(--green); }
+.fees-msg.bad { background: #fde4e1; color: var(--red); }
+.back-link { display: inline-block; margin: 0 0 12px; font-size: 14px; font-weight: 600; text-decoration: none; }
+
+/* ---------- Filters ---------- */
+.fees-filters { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 14px; }
+.fees-filters label { display: grid; gap: 5px; font-size: 13px; font-weight: 600; margin: 0; }
+.fees-filters select, .fees-filters input { width: auto; min-width: 170px; margin: 0; }
+.fees-filters .count { margin-left: auto; color: var(--muted); font-size: 13px; padding-bottom: 10px; }
+
+/* ---------- Charges table ---------- */
+.fees-scroll { overflow-x: auto; }
+.fees-table { min-width: 760px; }
+.fees-table td { vertical-align: middle; }
+.fees-table .num { text-align: right; white-space: nowrap; }
+.fees-table .sub { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.fees-table tr.is-void td { color: #9aa0a8; }
+.fees-table tr.is-void .amount { text-decoration: line-through; }
+.row-actions { display: flex; gap: 4px; justify-content: flex-end; white-space: nowrap; }
+.row-actions button { border: 0; background: none; color: var(--navy); font: inherit; font-size: 13.5px; font-weight: 600;
+                      cursor: pointer; padding: 4px 7px; border-radius: 6px; }
+.row-actions button:hover { background: #f0efe8; }
+.row-actions button.danger { color: var(--red); }
+.locked { color: var(--muted); font-size: 13px; }
+
+/* ---------- Two-column forms (form on the left, summary on the right) ---------- */
+.fees-two { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 28px; align-items: start; }
+@media (max-width: 900px) { .fees-two { grid-template-columns: 1fr; } }
+.fees-form label { display: grid; gap: 6px; margin: 0 0 14px; font-size: 14px; font-weight: 600; }
+.fees-form input, .fees-form select, .fees-form textarea { margin: 0; font-weight: 400; }
+.fees-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.fees-hint { color: var(--muted); font-size: 12.5px; margin: -6px 0 14px; }
+.summary { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+.summary h3 { margin: 0 0 12px; font-size: 15px; }
+.sum-row { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; font-size: 14px; }
+.sum-row span:first-child { color: var(--muted); }
+.sum-row.total { border-top: 1px solid var(--border); margin-top: 8px; padding-top: 12px; font-weight: 700; font-size: 17px; }
+.sum-row.total span:first-child { color: inherit; }
+.summary .btn { margin-top: 12px; }
+.fees-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+
+/* ---------- Tick lists: grading applicants and counter fee types ---------- */
+.pick-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 0 10px; }
+.pick-head h2 { margin: 0; font-size: 17px; }
+.pick-list { border: 1px solid var(--border); border-radius: 10px; background: #fff; overflow: hidden; }
+.pick-list label { display: flex; gap: 12px; align-items: center; padding: 10px 14px; border-top: 1px solid #f1efe7;
+                   font-size: 14.5px; font-weight: 400; cursor: pointer; margin: 0; }
+.pick-list label:first-child { border-top: 0; }
+.pick-list label:hover { background: #faf9f4; }
+.pick-list input[type="checkbox"] { width: auto; flex: none; margin: 0; }
+.pick-list .who { flex: 1; min-width: 0; }
+.pick-list .grade { color: var(--muted); font-size: 13px; flex: 0 1 240px; }
+.pick-list .fee { font-weight: 600; flex: 0 0 76px; text-align: right; }
+.pick-list .fee.none { color: var(--red); font-weight: 400; font-size: 12.5px; }
+.pick-list .amount-box { flex: 0 0 110px; width: 110px; text-align: right; }
+.pick-list .group-title { padding: 8px 14px; background: #f7f6f1; font-size: 12px; font-weight: 700; color: var(--muted);
+                          text-transform: uppercase; letter-spacing: .04em; border-top: 1px solid #f1efe7; }
+.pick-list .group-title:first-child { border-top: 0; }
+
+/* ---------- Pop-up forms ---------- */
+dialog.fees-dialog { border: 0; border-radius: 14px; padding: 26px 28px; width: min(500px, calc(100vw - 32px));
+                     box-shadow: 0 20px 60px rgba(0, 0, 0, .3); color: var(--text); }
+dialog.fees-dialog::backdrop { background: rgba(22, 32, 46, .45); }
+.fees-dialog h2 { margin: 0 0 4px; }
+.fees-dialog .about { color: var(--muted); font-size: 14px; margin: 0 0 18px; }
+.fees-dialog input[readonly] { background: #f7f6f1; }
+.fees-dialog .error { margin: 0 0 10px; }
+.btn.danger { background: var(--red); border-color: var(--red); }
+.btn.danger:hover { background: #912018; }
+.btn[disabled] { opacity: .55; cursor: default; }
+
+/* ---------- Narrow screens ---------- */
+@media (max-width: 600px) {
+  .fees-filters select, .fees-filters input { min-width: 0; width: 100%; }
+  .fees-filters label { flex: 1 1 100%; }
+  .fees-filters .count { margin-left: 0; }
+  .fees-row2 { grid-template-columns: 1fr; }
+  .pick-list label { flex-wrap: wrap; }
+  .pick-list .grade { flex: 1 1 100%; order: 3; padding-left: 28px; }
+}
