@@ -3,42 +3,128 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Grading · Aikido Shinjukai</title>
+  <title>Grading results · Aikido Shinjukai</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/grading-results.css">
 </head>
 <body data-role="admin" data-page="grading">
-  <main class="container">
+  <main class="container gr-wide">
+    <!-- "4 results saved", "Result updated" and error messages show here -->
+    <div id="msg" class="gr-msg" role="status" hidden></div>
+
     <div class="page-head">
       <h1>Grading results</h1>
-      <p class="muted">Grading history, newest first.</p>
+      <p class="muted">Record the examiners' results after each grading. A pass moves the student up one belt and is added to the promotion log.</p>
     </div>
 
-    <section class="card" id="list">Loading...</section>
-
-    <div class="todo">
-      <strong>To build here:</strong> a form to record a grading result for a student. When the result is a pass,
-      the student's belt is updated too. API: <code>gradingRoutes.js</code>, <code>gradingController.js</code> and <code>gradingModel.js</code> in <code>backend/</code>.
+    <div class="gr-tabs" id="tabs" role="tablist">
+      <button type="button" class="on" data-tab="record">Record results <span class="count" id="todo-count" hidden></span></button>
+      <button type="button" data-tab="history">Results history</button>
+      <button type="button" data-tab="promotions">Promotion log</button>
     </div>
+
+    <!-- ============ 1. Record results ============ -->
+    <section id="tab-record">
+      <div class="gr-sessions" id="sessions">Loading...</div>
+
+      <div class="card" id="session-card" hidden>
+        <div class="gr-session-head">
+          <h2 id="s-title"></h2>
+          <span class="muted" id="s-where"></span>
+        </div>
+        <p class="gr-note" id="s-upcoming" hidden></p>
+
+        <div class="gr-panel">
+          <label>Chief examiner
+            <select id="chief"></select>
+          </label>
+          <div class="gr-field">
+            <span>Assistant examiners</span>
+            <div class="gr-chips" id="assistants">
+              <select id="add-assistant" aria-label="Add assistant examiner"></select>
+            </div>
+          </div>
+          <label>Result date
+            <input type="date" id="result-date">
+          </label>
+        </div>
+        <p class="gr-hint">The examiner panel is saved with the results from this session.</p>
+
+        <div class="gr-sec">
+          <h2>Candidates</h2>
+          <button class="btn outline small" type="button" id="all-pass">Mark all as pass</button>
+        </div>
+        <div class="gr-scroll" id="candidates"></div>
+
+        <div class="gr-savebar">
+          <span class="sum" id="sum"></span>
+          <button class="btn" type="button" id="save">Save results</button>
+        </div>
+        <p class="gr-hint right" id="save-hint"></p>
+      </div>
+    </section>
+
+    <!-- ============ 2. Results history ============ -->
+    <section id="tab-history" hidden>
+      <div class="card">
+        <div class="gr-filters">
+          <label>Session <select id="h-session"><option value="">All sessions</option></select></label>
+          <label>Result
+            <select id="h-result">
+              <option value="">All</option>
+              <option value="pass">Pass</option>
+              <option value="fail">Fail</option>
+            </select>
+          </label>
+          <label>Search student <input id="h-search" type="search" placeholder="Name"></label>
+          <span class="count" id="h-count"></span>
+        </div>
+        <div class="gr-scroll" id="history">Loading...</div>
+        <p class="gr-hint">Results recorded before this page existed have no session or examiners.</p>
+      </div>
+    </section>
+
+    <!-- ============ 3. Promotion log ============ -->
+    <section id="tab-promotions" hidden>
+      <div class="card">
+        <div class="gr-filters">
+          <label>Search student <input id="p-search" type="search" placeholder="Name"></label>
+          <label>Centre <select id="p-centre"><option value="">All centres</option></select></label>
+          <span class="count" id="p-count"></span>
+        </div>
+        <div class="gr-scroll" id="promotions">Loading...</div>
+      </div>
+    </section>
   </main>
+
+  <!-- ============ Edit a saved result ============ -->
+  <dialog class="gr-dialog" id="edit-dialog">
+    <form method="dialog" id="edit-form">
+      <h2>Edit result</h2>
+      <p class="about" id="e-about"></p>
+      <div class="gr-field">
+        <span>Result</span>
+        <span class="gr-seg" id="e-result">
+          <label class="pass"><input type="radio" name="e-result" value="pass">Pass</label>
+          <label class="fail"><input type="radio" name="e-result" value="fail">Fail</label>
+        </span>
+      </div>
+      <div class="gr-warn" id="e-warn" hidden></div>
+      <label>Examiner remarks <input id="e-notes" maxlength="300"></label>
+      <label id="e-cert-row">Certificate no. <input id="e-cert" maxlength="60" placeholder="e.g. ASK-2026-0414"></label>
+      <label>Reason for the change <input id="e-reason" maxlength="200" placeholder="e.g. Examiner sheet misread"></label>
+      <p class="gr-hint">Saved with your name and the time. The earlier version stays in the edit log.</p>
+      <p class="gr-error" id="e-error" hidden></p>
+      <div class="gr-buttons">
+        <button class="btn" type="submit" id="e-save">Save change</button>
+        <button class="btn outline" type="button" id="e-cancel">Cancel</button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="/js/api.js"></script>
   <script src="/js/ui.js"></script>
   <script src="/js/layout.js"></script>
-  <script>
-    (async () => {
-      try {
-        const gradings = await api.get('/gradings');
-        renderTable('#list', [
-          { label: 'Date', render: (g) => esc(formatDate(g.graded_on)) },
-          { label: 'Student', key: 'student' },
-          { label: 'Graded for', key: 'belt' },
-          { label: 'Result', render: (g) => statusBadge(g.result) },
-          { label: 'Notes', key: 'notes' },
-        ], gradings);
-      } catch (err) {
-        showError('#list', err);
-      }
-    })();
-  </script>
+  <script src="/js/grading-results.js"></script>
 </body>
 </html>
