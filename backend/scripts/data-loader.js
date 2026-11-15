@@ -123,8 +123,8 @@ async function loadCsvData(dirName = 'sample-data') {
     n++;
     const centreId = lookup(centres, r.centre, 'centre', 'instructors.csv', n);
     const { rows } = await db.query(
-      'INSERT INTO instructors (centre_id, name, email) VALUES ($1, $2, $3) RETURNING id',
-      [centreId, r.name, r.email]
+      'INSERT INTO instructors (centre_id, name, email, examiner_rank) VALUES ($1, $2, $3, $4) RETURNING id',
+      [centreId, r.name, r.email, r.examiner_rank || null]
     );
     instructors.set(r.name, rows[0].id);
   }
