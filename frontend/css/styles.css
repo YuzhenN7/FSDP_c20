@@ -145,3 +145,32 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--pill); bord
   font-size: 14px;
 }
 .todo strong { color: var(--text); }
+
+/* ---------- Mobile (phones) ---------- */
+@media (max-width: 700px) {
+  .topbar { padding: 10px 14px; gap: 10px; }
+  /* nav becomes one row you can swipe sideways, instead of 4 wrapped rows */
+  .topbar nav {
+    order: 3;
+    flex: 1 1 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+  }
+  .topbar nav a { white-space: nowrap; }
+  .userchip { margin-left: auto; }
+
+  .container { padding: 20px 14px; }
+  h1 { font-size: 22px; }
+
+  /* wide tables scroll sideways inside their card instead of squashing */
+  .card { overflow-x: auto; }
+  .card table { min-width: 560px; }
+
+  /* 16px stops iPhones zooming in when a box is tapped */
+  input, select, textarea { font-size: 16px; }
+  .btn { padding: 12px 18px; }
+
+  .result .actions { flex-wrap: wrap; }
+}

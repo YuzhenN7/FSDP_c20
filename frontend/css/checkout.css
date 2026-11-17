@@ -141,3 +141,10 @@
   font-size: 12px;
   font-weight: 600;
 }
+
+@media (max-width: 700px) {
+  .co-wrap { margin: 24px auto; }
+  .co-left, .co-right { padding: 20px; }
+  .co-student { flex-wrap: wrap; gap: 16px; }
+  .co-total { font-size: 28px; }
+}
