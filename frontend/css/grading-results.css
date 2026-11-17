@@ -1,0 +1,108 @@
+/* Admin Grading results page (frontend/admin/grading.html). Loaded after styles.css. */
+
+.container.gr-wide { max-width: 1180px; }
+[hidden] { display: none !important; }
+
+/* ---------- Messages ---------- */
+.gr-msg { margin: 0 0 16px; padding: 10px 14px; border-radius: 8px; font-size: 14px; background: var(--green-bg); color: var(--green); }
+.gr-msg.bad { background: #fde4e1; color: var(--red); }
+.gr-note { background: var(--amber-bg); color: var(--amber); border-radius: 8px; padding: 10px 14px; font-size: 13.5px; margin: 0 0 16px; }
+.gr-error { color: var(--red); font-size: 13.5px; margin: 0 0 12px; }
+.gr-hint { color: var(--muted); font-size: 12.5px; margin: 6px 0 0; }
+.gr-hint.right { text-align: right; }
+
+/* ---------- Tabs ---------- */
+.gr-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--border); margin: 0 0 20px; overflow-x: auto; }
+.gr-tabs button { border: 0; background: none; padding: 10px 16px; font: inherit; font-size: 15px; color: var(--muted);
+                  cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.gr-tabs button.on { color: var(--navy); border-bottom-color: var(--navy); font-weight: 600; }
+.gr-tabs .count { display: inline-block; background: var(--amber-bg); color: var(--amber); border-radius: 999px;
+                  padding: 0 8px; font-size: 12px; margin-left: 6px; font-weight: 700; }
+
+/* ---------- Session cards ---------- */
+.gr-sessions { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-bottom: 22px; }
+.gr-sess { text-align: left; font: inherit; color: inherit; border: 1px solid var(--border); border-radius: 10px;
+           padding: 14px 16px; background: #fff; cursor: pointer; }
+.gr-sess:hover { border-color: #c9cfdb; }
+.gr-sess.on { border-color: var(--navy); box-shadow: 0 0 0 2px var(--navy) inset; }
+.gr-sess strong { display: block; font-size: 15px; }
+.gr-sess .muted { display: block; font-size: 13px; margin-top: 2px; }
+.gr-sess .left { margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--amber); }
+.gr-sess .done { margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--green); }
+
+/* ---------- Session header and examiner panel ---------- */
+.gr-session-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.gr-session-head h2 { margin: 0; }
+.gr-panel { display: grid; grid-template-columns: 1fr 1.2fr 170px; gap: 16px; align-items: end; }
+@media (max-width: 800px) { .gr-panel { grid-template-columns: 1fr; } }
+.gr-panel label, .gr-field { display: grid; gap: 6px; font-size: 13.5px; font-weight: 600; margin: 0; }
+.gr-panel input, .gr-panel select { margin: 0; font-weight: 400; }
+.gr-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-height: 42px; border: 1px solid var(--border);
+            border-radius: 8px; padding: 5px 8px; background: #fff; }
+.gr-chip { background: #e8eef7; color: var(--navy); border-radius: 999px; padding: 3px 4px 3px 10px; font-size: 13px;
+           font-weight: 600; display: inline-flex; gap: 4px; align-items: center; }
+.gr-chip button { border: 0; background: none; color: inherit; cursor: pointer; opacity: .6; font-size: 13px; padding: 0 6px; }
+.gr-chip button:hover { opacity: 1; }
+.gr-chips select { width: auto; border: 0; background: none; color: var(--navy); font-weight: 600; font-size: 13px;
+                   padding: 4px; margin: 0; cursor: pointer; flex: 1; min-width: 150px; }
+
+/* ---------- Candidates and history tables ---------- */
+.gr-sec { display: flex; justify-content: space-between; align-items: center; margin: 24px 0 10px; gap: 10px; }
+.gr-sec h2 { margin: 0; font-size: 17px; }
+.gr-scroll { overflow-x: auto; }
+table.gr-table { width: 100%; min-width: 760px; border-collapse: collapse; }
+table.gr-table th { text-align: left; font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted);
+                    padding: 0 10px 10px 0; font-weight: 600; }
+table.gr-table td { padding: 11px 10px 11px 0; border-top: 1px solid var(--border); vertical-align: middle; font-size: 14.5px; }
+table.gr-table input { margin: 0; }
+table.gr-table input.notes { width: 100%; min-width: 180px; }
+table.gr-table input.cert { width: 140px; }
+.gr-table .sub { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+.gr-table .edited { font-size: 12px; }
+.gr-table .arrow { color: var(--muted); margin: 0 6px; }
+#history td:first-child, #promotions td:nth-child(1), #promotions td:nth-child(3) { white-space: nowrap; }
+.gr-tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600;
+          background: #e8eef7; color: var(--navy); margin-left: 6px; vertical-align: middle; }
+.gr-tag.warn { background: var(--amber-bg); color: var(--amber); }
+.badge.pass { background: var(--green-bg); color: var(--green); }
+.badge.fail { background: #fde4e1; color: var(--red); }
+.badge { text-transform: capitalize; }
+.gr-link { border: 0; background: none; color: var(--navy); font: inherit; font-size: 13.5px; font-weight: 600;
+           cursor: pointer; padding: 4px 7px; border-radius: 6px; }
+.gr-link:hover { background: #f0efe8; }
+
+/* ---------- Pass / fail toggle ---------- */
+.gr-seg { display: inline-flex; width: max-content; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.gr-seg label { position: relative; padding: 7px 14px; font-size: 13.5px; font-weight: 600; cursor: pointer; margin: 0;
+                color: var(--muted); background: #fff; display: block; }
+.gr-seg label + label { border-left: 1px solid var(--border); }
+.gr-seg input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; pointer-events: none; }
+.gr-seg label:has(input:focus-visible) { outline: 2px solid var(--navy); outline-offset: -2px; }
+.gr-seg label.pass:has(input:checked) { background: var(--green-bg); color: var(--green); }
+.gr-seg label.fail:has(input:checked) { background: #fde4e1; color: var(--red); }
+
+/* ---------- Save bar ---------- */
+.gr-savebar { display: flex; align-items: center; gap: 16px; justify-content: flex-end; border-top: 1px solid var(--border);
+              margin-top: 4px; padding-top: 16px; flex-wrap: wrap; }
+.gr-savebar .sum { margin-right: auto; font-size: 14px; }
+.gr-savebar .sum b { margin-right: 12px; }
+.gr-savebar .g { color: var(--green); }
+.gr-savebar .r { color: var(--red); }
+
+/* ---------- Filters ---------- */
+.gr-filters { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 14px; }
+.gr-filters label { display: grid; gap: 5px; font-size: 13px; font-weight: 600; margin: 0; }
+.gr-filters select, .gr-filters input { width: auto; min-width: 170px; margin: 0; }
+.gr-filters .count { margin-left: auto; color: var(--muted); font-size: 13px; padding-bottom: 10px; }
+
+/* ---------- Edit dialog ---------- */
+dialog.gr-dialog { border: 0; border-radius: 14px; padding: 26px 28px; width: min(520px, calc(100vw - 32px));
+                   box-shadow: 0 20px 60px rgba(0, 0, 0, .3); color: var(--text); }
+dialog.gr-dialog::backdrop { background: rgba(22, 32, 46, .45); }
+.gr-dialog h2 { margin: 0 0 4px; }
+.gr-dialog .about { color: var(--muted); margin: 0 0 18px; font-size: 14px; }
+.gr-dialog form > label, .gr-dialog .gr-field { display: grid; gap: 6px; margin: 0 0 14px; font-size: 14px; font-weight: 600; }
+.gr-dialog input { margin: 0; font-weight: 400; }
+.gr-dialog .gr-hint { margin: -6px 0 14px; }
+.gr-warn { background: var(--amber-bg); color: var(--amber); border-radius: 8px; padding: 10px 12px; font-size: 13px; margin: 0 0 14px; }
+.gr-buttons { display: flex; gap: 10px; flex-wrap: wrap; }

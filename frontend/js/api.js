@@ -4,6 +4,7 @@
 //   await api.post('/fees', { student_id: 1, description: 'Term 5', amount: 120 });
 //
 // It adds the login token automatically. If the token is missing/expired it sends you to the login page.
+const API_BASE = location.port === '3000' ? '' : 'http://localhost:3000';
 
 const api = {
   getToken() {
@@ -37,7 +38,7 @@ const api = {
     const token = api.getToken();
     if (token) headers.Authorization = 'Bearer ' + token;
 
-    const res = await fetch('/api' + path, {
+    const res = await fetch(API_BASE + '/api' + path, {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),

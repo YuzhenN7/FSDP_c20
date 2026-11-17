@@ -1,6 +1,21 @@
 name,category,student_group,base_amount,discount_percent,can_be_in_package,description
-Registration Fee,registration,All,60,0,true,One-time registration for new students
+Registration Fee,registration,All,60,0,true,"One-time. Includes the current year's membership, membership book and student handbook"
 Annual Membership Fee,membership,All,48,0,true,Annual membership renewal
-10-Lesson Pass,class_package,Adult,270,0,true,"Ten adult training lessons, valid for 6 months"
+Reactivation Fee,registration,All,60,0,false,"Returning members. The current year's membership fee is charged on top"
+10-Lesson Pass,class_package,Adult,270,0,true,"Adult 13+. $27 per lesson, valid 11 weeks"
+25-Lesson Pass,class_package,Adult,600,0,true,"Adult 13+. $24 per lesson, valid 4 months"
+50-Lesson Pass,class_package,Adult,980,0,true,"Adult 13+. $19.60 per lesson, valid 6 months"
+Unlimited Pass (fortnightly),class_package,Adult,96,0,false,"Adult 13+. $48 per week billed fortnightly, minimum 3-month commitment"
+Children 1-Month Pass,class_package,Children,150,0,true,"Ages 4-12. 4 lessons, valid 5 weeks from the first session"
+Children 6-Month Pass,class_package,Children,834,0,true,"Ages 4-12. 24 lessons per semester, or $139 per month"
+Children 50-Lesson Pass,class_package,Children,1200,0,true,"Ages 4-12. $24 per lesson, valid 6 months from the first session"
+Trial Session,other,All,29,0,false,Single trial class
+Single Session,other,All,40,0,false,One-off drop-in class
+Private Class (per hour),other,All,120,0,false,From $120 per hour
+Local Guest 1-Day Pass,other,All,50,0,false,Unlimited sessions for one day
+Local Guest 1-Week Pass,other,All,150,0,false,Unlimited sessions for one week
+Overseas Guest 1-Day Pass,other,All,40,0,false,"Short-term visitors, 2 months maximum"
+Overseas Guest 1-Week Pass,other,All,120,0,false,"Short-term visitors, 2 months maximum"
+Overseas Guest 1-Month Pass,other,All,350,0,false,"Short-term visitors, 2 months maximum"
 Grading Fee,grading,All,,0,false,Amount depends on the belt grade
 Late Submission Fee,late_fee,All,22,0,false,Extra charge for late grading applications

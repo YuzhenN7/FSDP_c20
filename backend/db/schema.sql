@@ -140,3 +140,35 @@ CREATE TABLE IF NOT EXISTS payment_attempts (
   failure_reason TEXT,
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- ---------- Grading sessions and applications ----------
+CREATE TABLE IF NOT EXISTS grading_sessions (
+  id           SERIAL PRIMARY KEY,
+  type         TEXT NOT NULL CHECK (type IN ('mass_adult', 'mass_children', 'private')),
+  centre_id    INTEGER NOT NULL REFERENCES centres(id) ON DELETE CASCADE,
+  venue        TEXT NOT NULL,
+  session_date DATE NOT NULL,
+  session_time TIME NOT NULL,
+  fee          NUMERIC(10, 2) NOT NULL CHECK (fee >= 0),
+  apply_open   TIMESTAMPTZ NOT NULL,
+  apply_close  TIMESTAMPTZ NOT NULL,
+  capacity     INTEGER NOT NULL CHECK (capacity > 0),
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CHECK (apply_open < apply_close),
+  CHECK (type <> 'private' OR capacity <= 4)
+);
+
+CREATE TABLE IF NOT EXISTS grading_applications (
+  id                 SERIAL PRIMARY KEY,
+  session_id         INTEGER NOT NULL REFERENCES grading_sessions(id) ON DELETE CASCADE,
+  student_id         INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  status             TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  belt_id            INTEGER REFERENCES belt_levels(id),
+  membership_status  TEXT,
+  eligibility_result TEXT NOT NULL DEFAULT 'eligible',
+  remark             TEXT,
+  applied_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+  reviewed_at        TIMESTAMPTZ,
+  UNIQUE (session_id, student_id)
+);
+
+ALTER TABLE students ADD COLUMN IF NOT EXISTS date_of_birth DATE;

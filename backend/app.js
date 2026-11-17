@@ -7,6 +7,8 @@ const express = require('express');
 
 const app = express();
 app.use(express.json());
+const cors = require('cors');
+app.use(cors());
 
 // ---------- API (everything under /api) ----------
 app.get('/api/health', (req, res) => res.json({ ok: true }));
@@ -20,6 +22,7 @@ app.use('/api/terms', require('./routes/termRoutes'));              // SCRUM-17:
 app.use('/api/members', require('./routes/memberRoutes'));         // members = students, as seen by the admin
 app.use('/api/belts', require('./routes/beltRoutes'));
 app.use('/api/gradings', require('./routes/gradingRoutes'));
+app.use('/api/grading-sessions', require('./routes/gradingSessionRoutes'));
 app.use('/api/fees', require('./routes/feeRoutes'));
 app.use('/api/fee-types', require('./routes/feetypeRoutes.js'));     // admin: fee types set-up
 app.use('/api/fee-packages', require('./routes/feePackageRoutes'));  // admin: fee packages set-up
