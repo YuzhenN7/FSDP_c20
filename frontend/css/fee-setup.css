@@ -7,6 +7,7 @@
 }
 .card-head { 
     display: flex; 
+    flex-wrap: wrap; 
     justify-content: space-between; 
     align-items: flex-start; 
     gap: 16px; 
@@ -353,4 +354,8 @@ body.modal-open {
     display: flex;
     flex-direction: column;
     gap: 4px;
+}
+
+@media (max-width: 600px) {
+    .modal-preview { border-left: none; }
 }
