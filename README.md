@@ -2,12 +2,12 @@
 
 *One system for every dojo.*
 
-A web platform for Aikido Shinjukai's training centres. Admins manage students, classes, grading, belts, fees and reports in one place. Students apply for grading, check their belt, pay fees online and get receipts.
+**Project Description**
+The Aikido Shinjukai Centralised Administrative Workflow System replaces manual admin across training centres with one web-based platform. Admins manage students, classes, grading sessions, belts and fees in one place. Students apply for grading with an instant eligibility check, track their belt progress, pay fees online and receive receipts. Failed payments can be retried, and admins see payments and reports, saving time and reducing errors.
 
 **Team C20:** Ooi Yu Wen, Oon Xin Hui Sherie, Su Yuzhen, Ferlynn · Ngee Ann Polytechnic, FSDP
 
-**Live app:** https://YOUR-APP-URL  (demo logins below)
-// need to do this
+**Live app:** [https:////fsdp-c20.onrender.com/](https://fsdp-c20.onrender.com/) (demo logins below)
 
 **Stack:** Node.js + Express (API in `backend/`) · PostgreSQL on Neon · plain HTML/CSS/JS pages (in `frontend/`, no React, no build step).
 The API (`/api/...`) is separate from the pages, so a mobile app or AI features can use the same API later.
