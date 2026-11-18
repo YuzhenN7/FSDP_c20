@@ -85,11 +85,45 @@ async function assignClass(id, instructorId, venueId) {
   return getClass(id);
 }
 
-// TODO: POST /api/classes       -> create a class
+// SCRUM-18: clash check for a NEW class (not in the database yet), using its day and times directly.
+// Same rule as findClashes: same day, overlapping times, and the same instructor or the same venue.
+async function findSlotClashes(day, startTime, endTime, instructorId, venueId) {
+  const { rows } = await db.query(
+    `SELECT o.id, o.name, c.name AS centre, o.day_of_week, o.start_time, o.end_time,
+            (o.instructor_id = $4) AS same_instructor,
+            (o.venue_id = $5)      AS same_venue
+     FROM classes o
+     JOIN centres c ON c.id = o.centre_id
+     WHERE o.day_of_week = $1
+       AND o.start_time < $3::time
+       AND o.end_time > $2::time
+       AND (o.instructor_id = $4 OR o.venue_id = $5)
+     ORDER BY o.start_time`,
+    [day, startTime, endTime, instructorId, venueId]
+  );
+  return rows;
+}
+
+// create a class and return it with its centre, venue and instructor names
+async function createClass({ centreId, name, day, startTime, endTime, instructorId, venueId }) {
+  const { rows } = await db.query(
+    `INSERT INTO classes (centre_id, name, day_of_week, start_time, end_time, instructor_id, venue_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+    [centreId, name, day, startTime, endTime, instructorId, venueId]
+  );
+  return getClass(rows[0].id);
+}
+
+// delete a class (its term links are removed too: ON DELETE CASCADE). Returns false if it did not exist.
+async function deleteClass(id) {
+  const { rows } = await db.query('DELETE FROM classes WHERE id = $1 RETURNING id', [id]);
+  return rows.length > 0;
+}
+
 // TODO: PUT /api/classes/:id    -> edit a class (name, day, times)
-// TODO: DELETE /api/classes/:id -> remove a class
 // TODO: POST/PUT/DELETE for /api/classes/venues and /api/classes/instructors
 
 module.exports = {
   listClasses, getClass, listVenues, getVenue, listInstructors, getInstructor, findClashes, assignClass,
+  findSlotClashes, createClass, deleteClass,
 };
