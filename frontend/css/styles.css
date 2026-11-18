@@ -207,7 +207,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--pill); bord
   .topbar nav {
     order: 3;
     flex: 1 1 100%;
-    flex-wrap: wrap;          /* wins over the nowrap rule above, because it comes later */
+    flex-wrap: wrap;          
     overflow: visible;
     justify-content: flex-start;
     gap: 2px;
