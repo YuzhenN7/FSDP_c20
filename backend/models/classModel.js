@@ -120,10 +120,41 @@ async function deleteClass(id) {
   return rows.length > 0;
 }
 
+// a venue at this centre with this name (any letter case), other than excludeId. undefined if none.
+async function findVenueByName(centreId, name, excludeId = null) {
+  const { rows } = await db.query(
+    `SELECT id FROM venues
+     WHERE centre_id = $1 AND LOWER(name) = LOWER($2) AND ($3::int IS NULL OR id <> $3)`,
+    [centreId, name, excludeId]
+  );
+  return rows[0];
+}
+
+// add a training venue to a centre; returns it with its centre name
+async function createVenue(centreId, name) {
+  const { rows } = await db.query(
+    `INSERT INTO venues (centre_id, name) VALUES ($1, $2)
+     RETURNING id, name, centre_id, (SELECT name FROM centres WHERE id = $1) AS centre`,
+    [centreId, name]
+  );
+  return rows[0];
+}
+
+// rename a venue (classes point to it by id, so they pick up the new name automatically)
+async function renameVenue(id, name) {
+  const { rows } = await db.query(
+    `UPDATE venues v SET name = $2 FROM centres c
+     WHERE v.id = $1 AND c.id = v.centre_id
+     RETURNING v.id, v.name, v.centre_id, c.name AS centre`,
+    [id, name]
+  );
+  return rows[0];
+}
+
 // TODO: PUT /api/classes/:id    -> edit a class (name, day, times)
-// TODO: POST/PUT/DELETE for /api/classes/venues and /api/classes/instructors
+// TODO: PUT /api/classes/instructors/:id -> save an instructor's availability
 
 module.exports = {
   listClasses, getClass, listVenues, getVenue, listInstructors, getInstructor, findClashes, assignClass,
-  findSlotClashes, createClass, deleteClass,
+  findSlotClashes, createClass, deleteClass, findVenueByName, createVenue, renameVenue,
 };

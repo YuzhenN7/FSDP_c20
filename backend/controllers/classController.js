@@ -121,4 +121,37 @@ async function deleteClass(req, res) {
   res.json({ ok: true });
 }
 
-module.exports = { listClasses, listVenues, listInstructors, assignClass, createClass, deleteClass };
+// POST /api/classes/venues   { centre_id, name }
+async function createVenue(req, res) {
+  const centreId = parseId(req.body.centre_id);
+  const name = String(req.body.name || '').trim();
+  if (!centreId) return res.status(400).json({ error: 'Invalid centre.' });
+  if (!name) return res.status(400).json({ error: 'Venue name is required.' });
+  if (await classModel.findVenueByName(centreId, name)) {
+    return res.status(409).json({ error: 'This centre already has a venue with that name.' });
+  }
+  try {
+    res.status(201).json(await classModel.createVenue(centreId, name));
+  } catch (err) {
+    if (err.code === '23503') return res.status(400).json({ error: 'That centre does not exist.' });
+    throw err;
+  }
+}
+
+// PUT /api/classes/venues/:id   { name }
+async function renameVenue(req, res) {
+  const id = parseId(req.params.id);
+  const name = String(req.body.name || '').trim();
+  if (!id) return res.status(400).json({ error: 'Invalid venue id.' });
+  if (!name) return res.status(400).json({ error: 'Venue name is required.' });
+  const venue = await classModel.getVenue(id);
+  if (!venue) return res.status(404).json({ error: 'Venue not found.' });
+  if (await classModel.findVenueByName(venue.centre_id, name, id)) {
+    return res.status(409).json({ error: 'This centre already has a venue with that name.' });
+  }
+  res.json(await classModel.renameVenue(id, name));
+}
+
+module.exports = {
+  listClasses, listVenues, listInstructors, assignClass, createClass, deleteClass, createVenue, renameVenue,
+};
