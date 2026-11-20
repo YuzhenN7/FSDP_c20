@@ -123,8 +123,8 @@ async function loadCsvData(dirName = 'sample-data') {
     n++;
     const centreId = lookup(centres, r.centre, 'centre', 'instructors.csv', n);
     const { rows } = await db.query(
-      'INSERT INTO instructors (centre_id, name, email) VALUES ($1, $2, $3) RETURNING id',
-      [centreId, r.name, r.email]
+      'INSERT INTO instructors (centre_id, name, email, examiner_rank) VALUES ($1, $2, $3, $4) RETURNING id',
+      [centreId, r.name, r.email, r.examiner_rank || null]
     );
     instructors.set(r.name, rows[0].id);
   }
@@ -155,9 +155,10 @@ async function loadCsvData(dirName = 'sample-data') {
     );
     
     const student = await db.query(
-      `INSERT INTO students (user_id, centre_id, belt_id, joined_on, date_of_birth)
-       VALUES ($1, $2, $3, COALESCE($4::date, CURRENT_DATE), $5::date) RETURNING id`,
-      [user.rows[0].id, centreId, beltId, r.joined_on, r.date_of_birth || null]
+            `INSERT INTO students (user_id, centre_id, belt_id, joined_on, date_of_birth, concession)
+       VALUES ($1, $2, $3, COALESCE($4::date, CURRENT_DATE), $5::date, $6) RETURNING id`,
+      // concession: none / student (full-time student) / nsf - senior (65+) comes from the date of birth
+      [user.rows[0].id, centreId, beltId, r.joined_on, r.date_of_birth || null, r.concession || 'none']
     );
     students.set(r.email.toLowerCase(), student.rows[0].id);   // NEW
   }                                                             // NEW

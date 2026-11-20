@@ -1,9 +1,30 @@
 # Aikido Shinjukai: Centralised Administrative Workflow System
 
-Starter project for the team. Login, register, navigation and a page + API route for every feature are already in place. Each person fills in their own features.
+*One system for every dojo.*
+
+**Project Description**
+The Aikido Shinjukai Centralised Administrative Workflow System replaces manual admin across training centres with one web-based platform. Admins manage students, classes, grading sessions, belts and fees in one place. Students apply for grading with an instant eligibility check, track their belt progress, pay fees online and receive receipts. Failed payments can be retried, and admins see payments and reports, saving time and reducing errors.
+
+**Team C20:** Ooi Yu Wen, Oon Xin Hui Sherie, Su Yuzhen, Ferlynn · Ngee Ann Polytechnic, FSDP
+
+**Live app:** [https:////fsdp-c20.onrender.com/](https://fsdp-c20.onrender.com/) (demo logins below)
 
 **Stack:** Node.js + Express (API in `backend/`) · PostgreSQL on Neon · plain HTML/CSS/JS pages (in `frontend/`, no React, no build step).
 The API (`/api/...`) is separate from the pages, so a mobile app or AI features can use the same API later.
+
+## Features
+
+**Admin**
+- Log in with role-based access; add, edit, search and deactivate students
+- Create terms with holidays, and schedule recurring classes by type, day and dojo
+- Create grading sessions, review applications, record results and update belts
+- Set up fee types and packages, assign fees, and track payments
+- Reports: payment history, grades, revenue and outstanding fees
+
+**Student**
+- Check belt and grading eligibility, and apply for a grading session
+- View fees, pay online, retry a failed payment, and view receipts
+- See payment history and outstanding balance
 
 ## Run it (first time)
 
@@ -77,18 +98,14 @@ docs/
   git-guide.md          how we use branches
 ```
 
-## Who works on what (suggested, from the sprint 1 split)
+## Who built what
 
-| Area | Backend files (`routes` / `controllers` / `models`) | Pages in `frontend/` |
-|---|---|---|
-| Grading and belts | `grading*`, `belt*` | `admin/grading.html`, `admin/belts.html`, `student/belt.html` |
-| Foundation and scheduling | `centre*`, `class*`, `member*`, `attendance*` | `admin/centres.html`, `classes.html`, `members.html`, `attendance.html` |
-| Online payments | `studentPortal*` (the pay part), `services/emailService.js` | `student/fees.html`, `payment-success.html`, `payment-history.html` |
-| Payment tracking and reporting | `fee*`, `payment*`, `report*` | `admin/fees.html`, `payments.html`, `reports.html`, `dashboard.html` |
-
-(`centre*` means `routes/centreRoutes.js`, `controllers/centreController.js` and `models/centreModel.js`.)
-
-Every feature already shows a working example (it lists the data), with `TODO` comments for what's missing. Stick to your own files and you will almost never get Git conflicts.
+| Member | Area |
+|---|---|
+| Ooi Yu Wen | Fee types and packages, online payment (simulated gateway), payment events, failed payments, receipts, reports |
+| Oon Xin Hui Sherie | Login and role-based access, students, terms, recurring classes |
+| Su Yuzhen | Belt levels, grading results and auto-promotion, fee assignment, instructors and venues |
+| Ferlynn | Grading sessions, applications, approvals |
 
 ## Shared files: tell the team before changing these
 
@@ -124,8 +141,11 @@ Every feature already shows a working example (it lists the data), with `TODO` c
 
 Always pass values as `$1, $2...` in SQL (never paste user input into the SQL text), and wrap anything from the database in `esc(...)` when putting it into HTML (`renderTable` does this for you).
 
-## Notes
+## Notes and limitations
 
 - Public registration only creates **student** accounts. There is one admin account, created by setup.
-- Still a placeholder: online payment (`POST /api/student/fees/:id/pay` returns "not built yet"), real email sending, and every "add / edit / delete" action.
-- The sample logins and the admin password are for development. Change them before anything real is stored.
+- Online payment uses a **simulated gateway**. No real money moves. Prices include 9% GST (illustrative rate).
+- Receipt emails are printed to the terminal, not sent to a real inbox. 
+- The sample data is invented, except centres, class times and fee amounts, which follow public OnePA listings.
+- The demo logins are for demonstration only. Change them before any real data is stored.
+- Known issue: approving a student into a full grading session is not blocked yet. *(Delete once fixed.)*

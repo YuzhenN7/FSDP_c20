@@ -2,9 +2,11 @@
 // Used by frontend/admin/classes.html. Needs api.js, ui.js and layout.js loaded first.
 //
 // READS come from the API:  /centres, /classes, /classes/venues, /classes/instructors
-// SAVED to the database:    assigning an instructor and venue to an existing class (SCRUM-18)
-//                           PUT /classes/:id/assign  - the server refuses a double-booking and names the clash
-// Still kept on this page only (the backend has no routes for them yet): new classes, venues, availability.
+// SAVED to the database:    creating, assigning and deleting classes (SCRUM-18)
+//                           POST /classes, PUT /classes/:id/assign  - the server refuses a double-booking and names the clash
+//                           DELETE /classes/:id
+//                           POST /classes/venues, PUT /classes/venues/:id  - add / rename a training venue
+// Still kept on this page only (the backend has no routes for them yet): class category, instructor availability.
 // Each of those is marked with "TODO (backend)".
 
 (function () {
@@ -200,6 +202,7 @@
         <div class="form-actions">
           <button class="btn" type="submit">Save to timetable</button>
           <button class="btn outline" type="button" data-action="cancel">Cancel</button>
+          ${draft.id ? '<button class="btn outline danger" type="button" data-action="delete-class">Delete class</button>' : ''}
         </div>
       </form>`;
   }
@@ -250,10 +253,29 @@
     if (button) showTab(button.dataset.view);
   });
 
+  // SCRUM-18: delete the class open in the assign form
+  async function deleteDraft(button) {
+    if (!confirm(`Delete "${draft.name}"? It will also be removed from any term schedule.`)) return;
+    button.disabled = true;
+    try {
+      await api.del(`/classes/${draft.id}`);
+      classes = classes.filter((c) => c.id !== draft.id);
+      draft = null;
+      showTab('timetable');
+    } catch (err) {
+      $('form-error').textContent = err.message;
+      button.disabled = false;
+    }
+  }
+
   $('panel').addEventListener('click', (event) => {
     const button = event.target.closest('[data-action]');
     if (!button) return;
     const index = Number(button.dataset.index);
+    if (button.dataset.action === 'delete-class') {
+      deleteDraft(button);
+      return;
+    }
 
     switch (button.dataset.action) {
       case 'create':
@@ -329,15 +351,21 @@
           return;
         }
       } else {
-        // A class created on this page is not in the database yet, so it stays on the page only.
-        // TODO (backend): once POST /classes exists:  await api.post('/classes', draft);
-        const instructor = instructors.find((i) => i.id === instructorId);
-        const venue = venues.find((v) => v.id === venueId);
-        draft.instructor_id = instructorId;
-        draft.instructor = instructor ? instructor.name : null;
-        draft.venue_id = venueId;
-        draft.venue = venue ? venue.name : null;
-        classes.push(draft);
+        // SCRUM-18: a new class - save it to the database. The server checks for clashes.
+        const button = event.target.querySelector('button[type="submit"]');
+        button.disabled = true;
+        try {
+          const saved = await api.post('/classes', {
+            name: draft.name, centre_id: draft.centre_id, day_of_week: draft.day_of_week,
+            start_time: draft.start_time, end_time: draft.end_time,
+            instructor_id: instructorId, venue_id: venueId,
+          });
+          classes.push({ ...saved, category: draft.category });   // category is page-only, keep it
+        } catch (err) {
+          $('form-error').textContent = err.message;
+          button.disabled = false;
+          return;
+        }
       }
       view = 'timetable';
       tab = 'timetable';
@@ -352,14 +380,22 @@
           $('form-error').textContent = 'This centre already has a venue with that name.';
           return;
         }
-        if (resource.item) {
-          // Renaming: classes point to their venue by name, so update those too
-          classesHere().forEach((c) => { if (c.venue === resource.item.name) c.venue = value; });
-          resource.item.name = value;
-        } else {
-          venues.push({ id: null, name: value, centre_id: centre.id, centre: centre.name });
+        const button = event.target.querySelector('button[type="submit"]');
+        button.disabled = true;
+        try {
+          if (resource.item && resource.item.id) {
+            // Renaming: save it, then update the classes that show this venue's name
+            const saved = await api.put(`/classes/venues/${resource.item.id}`, { name: value });
+            classes.forEach((c) => { if (c.venue_id === saved.id) c.venue = saved.name; });
+            resource.item.name = saved.name;
+          } else {
+            venues.push(await api.post('/classes/venues', { centre_id: centre.id, name: value }));
+          }
+        } catch (err) {
+          $('form-error').textContent = err.message;
+          button.disabled = false;
+          return;
         }
-        // TODO (backend): save it, e.g. api.post('/classes/venues', ...) or api.put('/classes/venues/' + id, ...)
         view = 'venues';
       } else {
         resource.item.availability = value;

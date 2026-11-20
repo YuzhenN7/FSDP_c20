@@ -85,11 +85,76 @@ async function assignClass(id, instructorId, venueId) {
   return getClass(id);
 }
 
-// TODO: POST /api/classes       -> create a class
+// SCRUM-18: clash check for a NEW class (not in the database yet), using its day and times directly.
+// Same rule as findClashes: same day, overlapping times, and the same instructor or the same venue.
+async function findSlotClashes(day, startTime, endTime, instructorId, venueId) {
+  const { rows } = await db.query(
+    `SELECT o.id, o.name, c.name AS centre, o.day_of_week, o.start_time, o.end_time,
+            (o.instructor_id = $4) AS same_instructor,
+            (o.venue_id = $5)      AS same_venue
+     FROM classes o
+     JOIN centres c ON c.id = o.centre_id
+     WHERE o.day_of_week = $1
+       AND o.start_time < $3::time
+       AND o.end_time > $2::time
+       AND (o.instructor_id = $4 OR o.venue_id = $5)
+     ORDER BY o.start_time`,
+    [day, startTime, endTime, instructorId, venueId]
+  );
+  return rows;
+}
+
+// create a class and return it with its centre, venue and instructor names
+async function createClass({ centreId, name, day, startTime, endTime, instructorId, venueId }) {
+  const { rows } = await db.query(
+    `INSERT INTO classes (centre_id, name, day_of_week, start_time, end_time, instructor_id, venue_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+    [centreId, name, day, startTime, endTime, instructorId, venueId]
+  );
+  return getClass(rows[0].id);
+}
+
+// delete a class (its term links are removed too: ON DELETE CASCADE). Returns false if it did not exist.
+async function deleteClass(id) {
+  const { rows } = await db.query('DELETE FROM classes WHERE id = $1 RETURNING id', [id]);
+  return rows.length > 0;
+}
+
+// a venue at this centre with this name (any letter case), other than excludeId. undefined if none.
+async function findVenueByName(centreId, name, excludeId = null) {
+  const { rows } = await db.query(
+    `SELECT id FROM venues
+     WHERE centre_id = $1 AND LOWER(name) = LOWER($2) AND ($3::int IS NULL OR id <> $3)`,
+    [centreId, name, excludeId]
+  );
+  return rows[0];
+}
+
+// add a training venue to a centre; returns it with its centre name
+async function createVenue(centreId, name) {
+  const { rows } = await db.query(
+    `INSERT INTO venues (centre_id, name) VALUES ($1, $2)
+     RETURNING id, name, centre_id, (SELECT name FROM centres WHERE id = $1) AS centre`,
+    [centreId, name]
+  );
+  return rows[0];
+}
+
+// rename a venue (classes point to it by id, so they pick up the new name automatically)
+async function renameVenue(id, name) {
+  const { rows } = await db.query(
+    `UPDATE venues v SET name = $2 FROM centres c
+     WHERE v.id = $1 AND c.id = v.centre_id
+     RETURNING v.id, v.name, v.centre_id, c.name AS centre`,
+    [id, name]
+  );
+  return rows[0];
+}
+
 // TODO: PUT /api/classes/:id    -> edit a class (name, day, times)
-// TODO: DELETE /api/classes/:id -> remove a class
-// TODO: POST/PUT/DELETE for /api/classes/venues and /api/classes/instructors
+// TODO: PUT /api/classes/instructors/:id -> save an instructor's availability
 
 module.exports = {
   listClasses, getClass, listVenues, getVenue, listInstructors, getInstructor, findClashes, assignClass,
+  findSlotClashes, createClass, deleteClass, findVenueByName, createVenue, renameVenue,
 };
