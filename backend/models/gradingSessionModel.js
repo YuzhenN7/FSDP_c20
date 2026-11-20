@@ -98,7 +98,7 @@ async function reviewApplication(id, action, remark) {
     const found = await q(
       'SELECT a.id, a.status, a.session_id, u.name, u.email ' +
       'FROM grading_applications a JOIN students st ON st.id = a.student_id JOIN users u ON u.id = st.user_id ' +
-      'WHERE a.id = $1', [id]
+      'WHERE a.id = $1 FOR UPDATE OF a' [id]
     );
     const app = found.rows[0];
     if (!app) return { error: 'Application not found.', status: 404 };

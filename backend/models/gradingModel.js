@@ -14,7 +14,4 @@ async function listGradings() {
   return rows;
 }
 
-// TODO: POST /api/gradings  -> record a result { student_id, belt_id, result, graded_on, notes }
-// TODO:                        if result is 'pass', also update students.belt_id for that student
-
 module.exports = { listGradings };

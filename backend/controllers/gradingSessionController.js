@@ -7,7 +7,7 @@ const ADULT_MIN_AGE = 18;
 function httpError(status, message, reasons) {
   return Object.assign(new Error(message), { status: status, reasons: reasons });
 }
-
+// error handling
 function handle(fn) {
   return async (req, res) => {
     try {
@@ -26,7 +26,7 @@ function parseId(value) {
   return id;
 }
 
-// POST /api/grading-sessions
+// CREATE session
 const createSession = handle(async (req, res) => {
   const b = req.body;
 
@@ -44,7 +44,7 @@ const createSession = handle(async (req, res) => {
     throw httpError(400, 'Applications must close before the session starts.');
   }
 
-  // capacity: mass needs one, private is capped at 4
+  // capacity: mass needs one, private capped at 4
   let capacity = Number(b.capacity);
   if (b.type === 'private') {
     capacity = capacity || 4;
@@ -57,7 +57,7 @@ const createSession = handle(async (req, res) => {
   res.status(201).json(session);
 });
 
-// GET /api/grading-sessions
+// GET all sessions
 const listSessions = handle(async (req, res) => {
   res.json(await model.listSessions());
 });
@@ -153,7 +153,7 @@ const listApplications = handle(async (req, res) => {
   res.json(await model.listApplications(req.query.status));
 });
 
-// PATCH /api/grading-sessions/applications/:id
+// UPDATE /api/grading-sessions/applications/:id
 const reviewApplication = handle(async (req, res) => {
   const id = parseId(req.params.id);
   const action = req.body.action;
