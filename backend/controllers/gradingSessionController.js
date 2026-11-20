@@ -2,7 +2,7 @@ const model = require('../models/gradingSessionModel');
 
 const TYPES = ['mass_adult', 'mass_children', 'private'];
 const MIN_MONTHS_BETWEEN_GRADINGS = 3;
-const ADULT_MIN_AGE = 18; 
+const ADULT_MIN_AGE = 13; 
 
 function httpError(status, message, reasons) {
   return Object.assign(new Error(message), { status: status, reasons: reasons });
@@ -86,14 +86,14 @@ function checkEligibility(st, session) {
   if (!st.belt_id) reasons.push('No current belt is recorded for you.');
   else if (!st.next_belt_id) reasons.push('You are already at the highest belt.');
 
-  // Adult mass sessions need age 18+, children mass sessions need under 18 (private is open to all)
+    // Adult mass sessions need age 13+, children mass sessions need under 13 (private is open to all)
   if (session.type === 'mass_adult' || session.type === 'mass_children') {
     if (!st.date_of_birth) {
       reasons.push('Your date of birth is not recorded. Please contact your dojo admin.');
     } else {
       const age = ageOn(st.date_of_birth, session.session_day);
-      if (session.type === 'mass_adult' && age < ADULT_MIN_AGE) reasons.push('This session is for adults (18 and above) only.');
-      if (session.type === 'mass_children' && age >= ADULT_MIN_AGE) reasons.push('This session is for children (under 18) only.');
+      if (session.type === 'mass_adult' && age < ADULT_MIN_AGE) reasons.push('This session is for adults (13 and above) only.');
+      if (session.type === 'mass_children' && age >= ADULT_MIN_AGE) reasons.push('This session is for children (under 13) only.');
     }
   }
   

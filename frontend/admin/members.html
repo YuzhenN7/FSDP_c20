@@ -51,12 +51,19 @@
       <label>Current belt <select name="belt_id" required><option value="">Select current belt</option></select></label>
       <label>Membership status <select name="membership_status"><option value="active">Active</option><option value="suspended">Suspended</option><option value="inactive">Inactive</option></select></label>
       <label>Membership start date <input name="joined_on" type="date" required></label>
+      <label>Date of birth <input name="date_of_birth" type="date"></label>
+      <label>Concession <select name="concession">
+        <option value="none">None</option>
+        <option value="student">Full-time student (ages 17 to 25)</option>
+        <option value="nsf">NSF</option>
+      </select></label>
     </div>
     <div id="modal-message" class="s1-message error" role="alert" hidden></div>
     <div class="s1-actions">
       <button class="btn" type="submit" id="save-student">Create student</button>
       <button class="btn outline" type="button" id="cancel-edit">Cancel</button>
-      <span class="s1-help">Required fields must be completed. Duplicate emails are rejected.</span>
+      <span class="s1-help">Required fields must be completed. Duplicate emails are rejected.
+        Under 13 belongs on the junior belt ladder. The senior discount (65+) comes from the date of birth.</span>
     </div>
   </form>
 </dialog>

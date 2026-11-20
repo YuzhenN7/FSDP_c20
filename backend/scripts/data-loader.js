@@ -95,8 +95,9 @@ async function loadCsvData(dirName = 'sample-data') {
 
   for (const r of readCsv(dir, 'belts.csv')) {
     const { rows } = await db.query(
-      'INSERT INTO belt_levels (name, sort_order) VALUES ($1, $2) RETURNING id',
-      [r.name, Number(r.sort_order)]
+      `INSERT INTO belt_levels (name, sort_order, track, grading_fee)
+       VALUES ($1, $2, COALESCE($3, 'adult'), $4) RETURNING id`,
+      [r.name, Number(r.sort_order), r.track, r.grading_fee]
     );
     belts.set(r.name, rows[0].id);
   }

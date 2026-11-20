@@ -16,7 +16,9 @@
     .belt-table th, .belt-table td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #e6e3dc; }
     .belt-table td.actions { display: flex; gap: 6px; flex-wrap: wrap; }
     .add-form { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
-    .add-form input { padding: 8px 10px; border: 1px solid #cfcac0; border-radius: 8px; font: inherit; }
+    .add-form input, .add-form select { padding: 8px 10px; border: 1px solid #cfcac0; border-radius: 8px; font: inherit; background: #fff; }
+    .add-form #new-fee { width: 150px; }
+    .ladder-note { font-size: 14px; font-weight: 400; margin-left: 6px; }
     #msg { min-height: 1.5em; margin: 12px 0; }
     #msg.error { color: #b3261e; }
     #msg.ok { color: #2e7d32; }
@@ -27,18 +29,31 @@
     <div class="page-head head-with-actions">
       <div>
         <h1>Edit grades</h1>
-        <p class="muted">Add, rename, reorder and remove belt levels. Order 1 is the lowest belt.</p>
+        <p class="muted">Add, rename, reorder and remove belt levels, and set the fee to grade for each one.
+          Belts move up and down within their own ladder.</p>
       </div>
       <div><a class="belt-btn secondary" href="/admin/belts.html">← Back to belt levels</a></div>
     </div>
 
     <p id="msg"></p>
-    <section class="card" id="list">Loading...</section>
+    <section class="card">
+      <h2>Adult ladder <span class="muted ladder-note">13 and above</span></h2>
+      <div id="list-adult">Loading...</div>
+    </section>
+    <section class="card">
+      <h2>Junior ladder <span class="muted ladder-note">under 13</span></h2>
+      <div id="list-junior">Loading...</div>
+    </section>
 
     <section class="card">
       <h2>Add a belt level</h2>
       <form class="add-form" id="add-form">
-        <input id="new-name" placeholder="Belt name, e.g. 2nd dan" required>
+        <input id="new-name" placeholder="Belt name, e.g. 5th dan" required>
+        <select id="new-track" aria-label="Ladder">
+          <option value="adult">Adult ladder</option>
+          <option value="junior">Junior ladder</option>
+        </select>
+        <input id="new-fee" type="number" min="0" step="0.01" placeholder="Grading fee ($)" aria-label="Grading fee">
         <button class="belt-btn" type="submit">Add to the top of the ladder</button>
       </form>
     </section>
@@ -49,7 +64,7 @@
   <script src="/js/layout.js"></script>
   <script>
     const msg = document.getElementById('msg');
-    const box = document.getElementById('list');
+    const money = (value) => (value == null ? 'none' : formatMoney(value));
     const del = (url) => (api.delete || api.del).call(api, url);
 
     function say(text, isError) {
@@ -77,18 +92,21 @@
       load();
     }
 
-    function render(belts) {
+    // Draw one ladder's table into the element with this id
+    function render(boxId, belts) {
+      const box = document.getElementById(boxId);
+      if (belts.length === 0) { box.textContent = 'No belts on this ladder yet.'; return; }
       const table = document.createElement('table');
       table.className = 'belt-table';
-      table.innerHTML = '<thead><tr><th>Order</th><th>Belt</th><th>Actions</th></tr></thead>';
+      table.innerHTML = '<thead><tr><th>Belt</th><th>Grading fee</th><th>Actions</th></tr></thead>';
       const body = document.createElement('tbody');
 
       belts.forEach((belt, i) => {
         const tr = document.createElement('tr');
-        const order = document.createElement('td');
-        order.textContent = belt.sort_order;
         const name = document.createElement('td');
         name.textContent = belt.name;
+        const fee = document.createElement('td');
+        fee.textContent = money(belt.grading_fee);
         const actions = document.createElement('td');
         actions.className = 'actions';
 
@@ -104,13 +122,23 @@
             run(() => api.put('/belts/' + belt.id, { name: newName.trim(), sort_order: belt.sort_order }),
               'Belt renamed.');
           }),
+          button('Set fee', 'secondary', () => {
+            const answer = prompt('Fee to grade for ' + belt.name + ' (leave empty for no fee):',
+              belt.grading_fee == null ? '' : belt.grading_fee);
+            if (answer === null) return;
+            const text = answer.trim().replace(/^\$/, '');
+            if (text !== '' && !(Number(text) >= 0)) { say('The fee must be a number, 0 or more.', true); return; }
+            run(() => api.put('/belts/' + belt.id, {
+              name: belt.name, sort_order: belt.sort_order, grading_fee: text === '' ? null : Number(text),
+            }), 'Grading fee updated.');
+          }),
           button('Remove', 'danger', () => {
             if (!confirm('Remove "' + belt.name + '"?')) return;
             run(() => del('/belts/' + belt.id), 'Belt removed.');
           })
         );
 
-        tr.append(order, name, actions);
+        tr.append(name, fee, actions);
         body.append(tr);
       });
 
@@ -120,9 +148,12 @@
 
     async function load() {
       try {
-        render(await api.get('/belts'));
+        const belts = await api.get('/belts');
+        render('list-adult', belts.filter((b) => b.track === 'adult'));
+        render('list-junior', belts.filter((b) => b.track === 'junior'));
       } catch (err) {
-        showError('#list', err);
+        showError('#list-adult', err);
+        document.getElementById('list-junior').textContent = '';
       }
     }
 
@@ -131,7 +162,16 @@
       const input = document.getElementById('new-name');
       const name = input.value.trim();
       if (!name) return;
-      run(async () => { await api.post('/belts', { name }); input.value = ''; }, 'Belt added.');
+      const fee = document.getElementById('new-fee');
+      run(async () => {
+        await api.post('/belts', {
+          name,
+          track: document.getElementById('new-track').value,
+          grading_fee: fee.value === '' ? null : Number(fee.value),
+        });
+        input.value = '';
+        fee.value = '';
+      }, 'Belt added.');
     });
 
     load();

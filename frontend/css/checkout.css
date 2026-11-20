@@ -1,4 +1,4 @@
-/* Simulated payment gateway page. Load after styles.css; uses only styles.css variables. */
+
 .co-wrap { 
     max-width: 860px; 
     margin: 48px auto; 
@@ -82,3 +82,62 @@
         grid-template-columns: 1fr; 
     }
  }
+
+ /* ---------- Payment failed / cancelled screen ---------- */
+.co-fail {
+  max-width: 560px;
+  margin: 56px auto;
+  padding: 0 16px;
+  text-align: center;
+}
+.fail-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.12);
+  color: var(--red);
+  font-size: 40px;
+  line-height: 72px;
+}
+.fail-title {
+  margin: 0 0 8px;
+}
+.fail-sub {
+  color: var(--muted);
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+.fail-table {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px 20px;
+  text-align: left;
+  margin-bottom: 20px;
+}
+.fail-table .kv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.fail-table .kv:last-child {
+  border-bottom: none;
+}
+.fail-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.badge.failed {
+  background: rgba(220, 38, 38, 0.12);
+  color: var(--red);
+  padding: 3px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+}

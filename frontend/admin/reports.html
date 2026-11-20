@@ -28,7 +28,7 @@
       </div>
     </div>
 
-    <div class=""rp-filters>
+    <div class="rp-filters">
       <div><label for="from">From</label><input id="from" type="date"></div>
       <div><label for="to">To</label><input id="to" type="date"></div>
       <div><label for="centre">Branch</label>
@@ -57,18 +57,7 @@
   <script src="/js/api.js"></script>
   <script src="/js/ui.js"></script>
   <script src="/js/layout.js"></script>
-  <script>
-    (async () => {
-      try {
-        const s = await api.get('/reports/summary');
-        const stat = (num, label) => `<div class="card stat"><div class="num">${num}</div><div class="label">${label}</div></div>`;
-        document.getElementById('stats').innerHTML =
-          stat(formatMoney(s.paid_total), 'Fees paid') + stat(formatMoney(s.unpaid_total), 'Fees outstanding');
-      } catch (err) {
-        showError('#stats', err);
-      }
-    })();
-  </script>
+  <script src="/js/reports.js"></script>
 </body>
 </html>
 

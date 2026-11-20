@@ -11,6 +11,7 @@
     .belt-btn { display: inline-block; padding: 8px 16px; border-radius: 8px; border: 1px solid #1f3a5f;
                 background: #1f3a5f; color: #fff; text-decoration: none; font: inherit; cursor: pointer; }
     .belt-btn.secondary { background: #fff; color: #1f3a5f; }
+    .ladder-note { font-size: 14px; font-weight: 400; margin-left: 6px; }
   </style>
 </head>
 <body data-role="admin" data-page="belts">
@@ -18,7 +19,8 @@
     <div class="page-head head-with-actions">
       <div>
         <h1>Belt levels</h1>
-        <p class="muted">The belt ladder, lowest first. (The sample ladder is an assumption until the client confirms theirs.)</p>
+        <p class="muted">Two ladders, lowest first. Everyone starts on Mukyu (no rank, white belt).
+          The grading fee is what a student pays to grade for that belt.</p>
       </div>
       <div class="head-actions">
         <!-- later: a "View dashboard" button goes here, to the left of Edit grades -->
@@ -26,7 +28,14 @@
       </div>
     </div>
 
-    <section class="card" id="list">Loading...</section>
+    <section class="card">
+      <h2>Adult ladder <span class="muted ladder-note">13 and above</span></h2>
+      <div id="list-adult">Loading...</div>
+    </section>
+    <section class="card">
+      <h2>Junior ladder <span class="muted ladder-note">under 13</span></h2>
+      <div id="list-junior">Loading...</div>
+    </section>
   </main>
 
   <script src="/js/api.js"></script>
@@ -36,12 +45,15 @@
     (async () => {
       try {
         const belts = await api.get('/belts');
-        renderTable('#list', [
-          { label: 'Order', key: 'sort_order' },
+        const columns = [
           { label: 'Belt', key: 'name' },
-        ], belts);
+          { label: 'Grading fee', render: (b) => (b.grading_fee == null ? '<span class="muted">none</span>' : esc(formatMoney(b.grading_fee))) },
+        ];
+        renderTable('#list-adult', columns, belts.filter((b) => b.track === 'adult'));
+        renderTable('#list-junior', columns, belts.filter((b) => b.track === 'junior'));
       } catch (err) {
-        showError('#list', err);
+        showError('#list-adult', err);
+        document.getElementById('list-junior').textContent = '';
       }
     })();
   </script>
